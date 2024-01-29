@@ -16,6 +16,7 @@ type User struct {
 	RollNo string `json:"rollno" bson:"rollno"`
 	Branch string `json:"branch" bson:"branch"`
 	YearOfAdmission string `json:"year_of_admission" bson:"year_of_admission"`
+	Role string `json:"role" bson:"role"`
 }
 
 func init() {

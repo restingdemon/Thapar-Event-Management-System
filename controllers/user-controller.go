@@ -4,6 +4,7 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -12,54 +13,57 @@ import (
 	"github.com/restingdemon/thaparEvents/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type GoogleUser struct {
-	ID    string `json:"id"`
-	Email string `json:"email"`
-	Name  string `json:"name"`
+	ID    primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Email string `json:"email" bson:"email"`
+	Name  string `json:"name" bson:"name"`
+	Phone string `json:"phone" bson:"phone"`
+	RollNo string `json:"rollno" bson:"rollno"`
+	Branch string `json:"branch" bson:"branch"`
+	YearOfAdmission string `json:"year_of_admission" bson:"year_of_admission"`
+	Role string `json:"role" bson:"role"`
+	Token string `json:"token"`
 }
 
 func Create(w http.ResponseWriter, r *http.Request) {
 	// Parse request body to get the token
-	var tokenData map[string]string
-	utils.ParseBody(r, &tokenData)
+	var user = &GoogleUser{}
+	utils.ParseBody(r, user)
 
-	accessToken := tokenData["accessToken"]
-	if accessToken == "" {
-		http.Error(w, "Missing access token", http.StatusBadRequest)
+	if user.Email == "" {
+		http.Error(w, fmt.Sprintf("No email provided"), http.StatusBadRequest)
 		return
 	}
 
-	// Fetch user info from Google using the access token
-	googleUser, err := fetchGoogleUserInfo(accessToken)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to fetch user info from Google: %s", err), http.StatusInternalServerError)
+	if !utils.IsloginValid(user.Email,user.Token) {
+		http.Error(w, fmt.Sprintf("User token not valid"), http.StatusBadRequest)
 		return
 	}
-
 	// Check if the user already exists in the database based on their email
-	existingUser, err := getUserByEmail(googleUser.Email)
-	if err != nil {
+	existingUser, err := getUserByEmail(user.Email)
+	if !errors.Is(err, mongo.ErrNoDocuments){
 		http.Error(w, fmt.Sprintf("Failed to check user existence: %s", err), http.StatusInternalServerError)
 		return
 	}
 
 	// If the user doesn't exist, create a new user in the database
 	if existingUser == nil {
-		err := createUser(googleUser)
+		err := createUser(user)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to create user: %s", err), http.StatusInternalServerError)
 			return
 		}
-		existingUser, err = getUserByEmail(googleUser.Email)
+		existingUser, err = getUserByEmail(user.Email)
 		if err != nil {
 			http.Error(w,fmt.Sprintf("Failed to find user after create: %s", err), http.StatusInternalServerError)
 		}
 	}
 
 	// Generate JWT tokens for the user
-	token, refreshToken, err := helpers.GenerateAllTokens(googleUser.Email, googleUser.Name, "user", existingUser.ID.Hex())
+	token, refreshToken, err := helpers.GenerateAllTokens(existingUser.Email, existingUser.Name, "user", existingUser.ID.Hex())
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to generate tokens: %s", err), http.StatusInternalServerError)
 		return
@@ -75,34 +79,13 @@ func Create(w http.ResponseWriter, r *http.Request) {
 			"rollno":            existingUser.RollNo,
 			"branch":            existingUser.Branch,
 			"year_of_admission": existingUser.YearOfAdmission,
+			"role":"user",
 		},
 		"token":         token,
 		"refresh_token": refreshToken,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
-}
-
-func fetchGoogleUserInfo(accessToken string) (*GoogleUser, error) {
-	// Make an HTTP request to Google User Info API
-	resp, err := http.Get("https://www.googleapis.com/oauth2/v3/userinfo?access_token=" + accessToken)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to fetch user info from Google: %s", resp.Status)
-	}
-
-	// Decode the response body into a GoogleUser struct
-	var googleUser GoogleUser
-	err = json.NewDecoder(resp.Body).Decode(&googleUser)
-	if err != nil {
-		return nil, err
-	}
-
-	return &googleUser, nil
 }
 
 func getUserByEmail(email string) (*models.User, error) {
@@ -119,18 +102,18 @@ func getUserByEmail(email string) (*models.User, error) {
 }
 
 func createUser(googleUser *GoogleUser) error {
-	collection := models.DB.Database("your-database").Collection("users")
+	collection := models.DB.Database("ThaparEventsDb").Collection("users")
 
-	objectID, err := primitive.ObjectIDFromHex(googleUser.ID)
-	if err != nil {
-		return fmt.Errorf("failed to convert ID to ObjectID: %s", err)
-	}
 	user := models.User{
-		ID:              objectID,
-		Email:           googleUser.Email,
-		Name:            googleUser.Name,
+		Email: googleUser.Email,
+		Name:  googleUser.Name,
+		Role: "user",
 	}
 
-	_, err = collection.InsertOne(context.TODO(), user)
-	return err
+	_, err := collection.InsertOne(context.Background(), user)
+	if err != nil {
+		return fmt.Errorf("failed to insert user: %s", err)
+	}
+
+	return nil
 }
