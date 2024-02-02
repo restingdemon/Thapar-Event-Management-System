@@ -117,3 +117,61 @@ func createUser(googleUser *GoogleUser) error {
 
 	return nil
 }
+
+
+func GetUser(w http.ResponseWriter, r *http.Request) {
+	// Extract user ID from the request parameters
+	userID := r.URL.Query().Get("id")
+
+	if userID == "" {
+		http.Error(w, fmt.Sprintf("No user ID provided"), http.StatusBadRequest)
+		return
+	}
+
+	// Convert user ID to ObjectID
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Invalid user ID format"), http.StatusBadRequest)
+		return
+	}
+
+	// Retrieve the user from the database based on the ID
+	user, err := getUserByID(objectID)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			http.Error(w, fmt.Sprintf("User not found"), http.StatusNotFound)
+		} else {
+			http.Error(w, fmt.Sprintf("Failed to get user: %s", err), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Return the user data as a JSON response
+	response := map[string]interface{}{
+		"user": map[string]interface{}{
+			"_id":               user.ID.Hex(),
+			"email":             user.Email,
+			"name":              user.Name,
+			"phone":             user.Phone,
+			"rollno":            user.RollNo,
+			"branch":            user.Branch,
+			"year_of_admission": user.YearOfAdmission,
+			"role":              user.Role,
+		},
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func getUserByID(userID primitive.ObjectID) (*models.User, error) {
+	collection := models.DB.Database("ThaparEventsDb").Collection("users")
+
+	filter := bson.M{"_id": userID}
+	user := &models.User{}
+	err := collection.FindOne(context.TODO(), filter).Decode(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
