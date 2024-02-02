@@ -29,13 +29,22 @@ func Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		clientToken := r.Header.Get("token")
-		if clientToken == "" {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(fmt.Sprintf("No auth header provided")))
 			return
 		}
+
+		if !strings.HasPrefix(authHeader, "Bearer ") {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Invalid token type"))
+			return
+		}
+
+		clientToken := strings.TrimPrefix(authHeader, "Bearer ")
 
 		claims, msg := helpers.ValidateToken(clientToken)
 		if msg != "" {

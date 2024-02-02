@@ -22,7 +22,7 @@ func main() {
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"GET", "POST", "DELETE", "PUT"},
-		AllowedHeaders:   []string{"token", "Content-Type"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 	})
 
 	handler := c.Handler(r)
