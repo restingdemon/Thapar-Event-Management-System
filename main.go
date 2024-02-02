@@ -13,10 +13,11 @@ import (
 
 func main() {
 	r := mux.NewRouter()
+	
 	r.Use(middleware.Authenticate)
-
+	
 	routes.RegisterAuthRoutes(r)
-	//routes.RegisterUserRoutes(r)
+	routes.RegisterUserRoutes(r)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

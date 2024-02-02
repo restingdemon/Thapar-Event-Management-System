@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -14,9 +13,7 @@ var AuthenticationNotRequired map[string]bool = map[string]bool{
 }
 
 var RoleMethods = map[string][]string{
-	"/users": {"superadmin"},
-	// "/user-route":  "user",
-
+	"/users/get/": {"admin", "user", "superadmin"},
 }
 
 // Authenticate is a middleware function that performs authentication
@@ -56,20 +53,18 @@ func Authenticate(next http.Handler) http.Handler {
 
 		// Extract user roles from claims
 		userType := claims.User_type
-
+		userEmail := claims.Email
+		//userId := claims.Id
 		// Check if any of the user's roles are authorized to access the requested route
-		requiredRoles, ok := RoleMethods[requestedPath]
-		if !ok {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(fmt.Sprintf("Roles not defined for route: %s", requestedPath)))
-			return
-		}
-
 		authorized := false
-		for _, requiredRole := range requiredRoles {
-			if strings.Contains(userType, requiredRole) {
-				authorized = true
+		for path, requiredRoles := range RoleMethods {
+			if strings.HasPrefix(requestedPath, path) {
+				for _, requiredRole := range requiredRoles {
+					if strings.Contains(userType, requiredRole) {
+						authorized = true
+						break
+					}
+				}
 				break
 			}
 		}
@@ -80,21 +75,18 @@ func Authenticate(next http.Handler) http.Handler {
 			w.Write([]byte(fmt.Sprintf("Access forbidden for route: %s", requestedPath)))
 			return
 		}
+		ctx, err := CheckHTTPAuthorization(r,r.Context(), userType, userEmail)
+		if err != nil {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte(fmt.Sprintf("Permission denied: %s", err)))
+			return
+		}
+		sjhda := ctx.Value("email")
+		fmt.Println(sjhda)
 
-		ctx := context.WithValue(r.Context(), "email", claims.Email)
-		r = r.WithContext(ctx)
-
-		// Call the next handler in the chain
-		next.ServeHTTP(w, r)
+		// Call the next handler in the chain with the modified context
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-// contains checks if a string slice contains a specific value
-func contains(slice []string, value string) bool {
-	for _, v := range slice {
-		if v == value {
-			return true
-		}
-	}
-	return false
-}
