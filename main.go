@@ -31,7 +31,7 @@ func main() {
 	// Retrieve the PORT environment variable, default to 9010 if not set
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "9010"
+		port = "5112"
 	}
 
 	addr := ":" + port
