@@ -12,6 +12,7 @@ import (
 	"github.com/restingdemon/thaparEvents/helpers"
 	"github.com/restingdemon/thaparEvents/models"
 	"github.com/restingdemon/thaparEvents/utils"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -133,4 +134,104 @@ func GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
+	// Parse request body to get the updated user details
+	var updatedUser = &GoogleUser{}
+	utils.ParseBody(r, updatedUser)
+
+	// Extract email from the context
+	emailValue := r.Context().Value("email")
+	if emailValue == nil {
+		http.Error(w, "Email not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	email, ok := emailValue.(string)
+	if !ok {
+		http.Error(w, "Failed to retrieve email from context", http.StatusInternalServerError)
+		return
+	}
+
+	// Retrieve the user from the database based on the email
+	existingUser, err := helpers.Helper_GetUserByEmail(email)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			http.Error(w, fmt.Sprintf("User not found"), http.StatusNotFound)
+		} else {
+			http.Error(w, fmt.Sprintf("Failed to get user: %s", err), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Convert existingUser to GoogleUser for the update process
+	googleExistingUser := &GoogleUser{
+		ID:              existingUser.ID,
+		Email:           existingUser.Email,
+		Name:            existingUser.Name,
+		Phone:           existingUser.Phone,
+		RollNo:          existingUser.RollNo,
+		Branch:          existingUser.Branch,
+		YearOfAdmission: existingUser.YearOfAdmission,
+		Role:            existingUser.Role,
+		Token:           "",
+	}
+
+	// Update user details
+	googleExistingUser.Name = updatedUser.Name
+	googleExistingUser.Phone = updatedUser.Phone
+	googleExistingUser.RollNo = updatedUser.RollNo
+	googleExistingUser.Branch = updatedUser.Branch
+
+	// Update the user in the database
+	err = updateUser(googleExistingUser)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to update user: %s", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Return the updated user data as a JSON response
+	response := map[string]interface{}{
+		"user": map[string]interface{}{
+			"_id":               googleExistingUser.ID.Hex(),
+			"email":             googleExistingUser.Email,
+			"name":              googleExistingUser.Name,
+			"phone":             googleExistingUser.Phone,
+			"rollno":            googleExistingUser.RollNo,
+			"branch":            googleExistingUser.Branch,
+			"year_of_admission": googleExistingUser.YearOfAdmission,
+			"role":              googleExistingUser.Role,
+		},
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+
+
+func updateUser(user *GoogleUser) error {
+	collection := models.DB.Database("ThaparEventsDb").Collection("users")
+
+	// Convert GoogleUser to models.User for updating
+	update := bson.M{
+		"$set": models.User{
+			Email:			 user.Email,
+			Name:            user.Name,
+			Phone:           user.Phone,
+			RollNo:          user.RollNo,
+			Branch:          user.Branch,
+			YearOfAdmission: user.YearOfAdmission,
+			Role:			 user.Role,
+		},
+	}
+
+	// Update user in the database based on the email
+	_, err := collection.UpdateOne(context.Background(), bson.M{"email": user.Email}, update)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %s", err)
+	}
+
+	return nil
 }

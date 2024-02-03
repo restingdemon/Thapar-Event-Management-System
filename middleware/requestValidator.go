@@ -25,8 +25,22 @@ func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType strin
 		sjhda := ctx.Value("email")
 		fmt.Println(sjhda)
 		return ctx, nil
-	}
+		
+	
+	case strings.HasPrefix(r.URL.Path, "/users/update"):
+		// extracting email from path parameters
+		vars := mux.Vars(r)
+		email, ok := vars["email"]
+		if !ok {
+			return ctx, fmt.Errorf("no email provided")
+		}
+		if email != userEmail {
+			return ctx, fmt.Errorf("permission denied: you can only update your own details")
+		}
 
+		ctx = context.WithValue(ctx, "email", email)
+		return ctx, nil
+	}
 	// Default to allowing access if the route is not explicitly handled
 	return ctx, nil
 }

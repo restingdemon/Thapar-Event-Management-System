@@ -7,4 +7,5 @@ import (
 
 var RegisterUserRoutes = func(router *mux.Router) {
 	router.HandleFunc("/users/get/{email}", controller.GetUserByEmail).Methods("GET")
+	router.HandleFunc("/users/update/{email}", controller.UpdateUser).Methods("POST") //PUT bhi daal sakte
 }

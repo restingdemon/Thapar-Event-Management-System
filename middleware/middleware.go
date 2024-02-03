@@ -14,6 +14,8 @@ var AuthenticationNotRequired map[string]bool = map[string]bool{
 
 var RoleMethods = map[string][]string{
 	"/users/get/": {"admin", "user", "superadmin"},
+	"/users/update/": {"admin", "user", "superadmin"},
+
 }
 
 // Authenticate is a middleware function that performs authentication
