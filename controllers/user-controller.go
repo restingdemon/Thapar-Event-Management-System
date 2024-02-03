@@ -44,7 +44,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 	// Check if the user already exists in the database based on their email
 	existingUser, err := helpers.Helper_GetUserByEmail(user.Email)
-	if errors.Is(err, mongo.ErrNoDocuments) {
+	if err!= nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		http.Error(w, fmt.Sprintf("Failed to check user existence: %s", err), http.StatusInternalServerError)
 		return
 	}
