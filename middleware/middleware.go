@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/restingdemon/thaparEvents/helpers"
+	"github.com/restingdemon/thaparEvents/utils"
 )
 
 var AuthenticationNotRequired map[string]bool = map[string]bool{
@@ -13,9 +14,10 @@ var AuthenticationNotRequired map[string]bool = map[string]bool{
 }
 
 var RoleMethods = map[string][]string{
-	"/users/get/": {"admin", "user", "superadmin"},
+	"/users/get/":    {"admin", "user", "superadmin"},
 	"/users/update/": {"admin", "user", "superadmin"},
-
+	"/soc/register":  {utils.SuperAdminRole},
+	"/soc/get":       {utils.AdminRole, utils.UserRole, utils.SuperAdminRole},
 }
 
 // Authenticate is a middleware function that performs authentication
@@ -77,7 +79,7 @@ func Authenticate(next http.Handler) http.Handler {
 			w.Write([]byte(fmt.Sprintf("Access forbidden for route: %s", requestedPath)))
 			return
 		}
-		ctx, err := CheckHTTPAuthorization(r,r.Context(), userType, userEmail)
+		ctx, err := CheckHTTPAuthorization(r, r.Context(), userType, userEmail)
 		if err != nil {
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			w.WriteHeader(http.StatusForbidden)
@@ -91,4 +93,3 @@ func Authenticate(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
-

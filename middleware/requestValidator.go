@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/restingdemon/thaparEvents/utils"
 )
 
 func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType string, userEmail string) (context.Context, error) {
@@ -43,7 +44,13 @@ func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType strin
 
 		ctx = context.WithValue(ctx, "email", email)
 		return ctx, nil
+
+	case strings.HasPrefix(r.URL.Path, "/soc/register"):
+		if userType != utils.SuperAdminRole {
+			return ctx, fmt.Errorf("Invalid Role")
+		}
 	}
+
 	// Default to allowing access if the route is not explicitly handled
 	return ctx, nil
 }

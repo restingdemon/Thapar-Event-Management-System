@@ -1,16 +1,21 @@
 package utils
 
-import(
+import (
 	"encoding/json"
+	"google.golang.org/api/oauth2/v2"
 	"io/ioutil"
 	"net/http"
-	"google.golang.org/api/oauth2/v2"
-	
 )
 
-func ParseBody(r *http.Request , x interface{}){
-	if body  , err := ioutil.ReadAll(r.Body); err == nil{
-		if err := json.Unmarshal([]byte(body),x); err!=nil{
+var SuperAdminRole = "superadmin"
+var AdminRole = "admin"
+var UserRole = "user"
+var AssociateRole = "associate"
+var MemberRole = "member"
+
+func ParseBody(r *http.Request, x interface{}) {
+	if body, err := ioutil.ReadAll(r.Body); err == nil {
+		if err := json.Unmarshal([]byte(body), x); err != nil {
 			return
 		}
 	}

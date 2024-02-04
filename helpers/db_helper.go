@@ -2,14 +2,12 @@ package helpers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/restingdemon/thaparEvents/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-
-
-
 
 func Helper_GetUserByID(userID primitive.ObjectID) (*models.User, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("users")
@@ -24,7 +22,6 @@ func Helper_GetUserByID(userID primitive.ObjectID) (*models.User, error) {
 	return user, nil
 }
 
-
 func Helper_GetUserByEmail(email string) (*models.User, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("users")
 
@@ -36,4 +33,69 @@ func Helper_GetUserByEmail(email string) (*models.User, error) {
 	}
 
 	return user, nil
+}
+
+func Helper_UpdateUser(user *models.User) error {
+	collection := models.DB.Database("ThaparEventsDb").Collection("users")
+
+	update := bson.M{
+		"$set": models.User{
+			Email:           user.Email,
+			Name:            user.Name,
+			Phone:           user.Phone,
+			RollNo:          user.RollNo,
+			Branch:          user.Branch,
+			YearOfAdmission: user.YearOfAdmission,
+			Role:            user.Role,
+		},
+	}
+
+	// Update user in the database based on the email
+	_, err := collection.UpdateOne(context.Background(), bson.M{"email": user.Email}, update)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %s", err)
+	}
+
+	return nil
+}
+
+func Helper_CreateSociety(societydetails *models.Society) error {
+	collection := models.DB.Database("ThaparEventsDb").Collection("society")
+
+	_, err := collection.InsertOne(context.Background(), societydetails)
+	if err != nil {
+		return fmt.Errorf("failed to insert user: %s", err)
+	}
+
+	return nil
+}
+
+func Helper_GetSocietyByEmail(email string) (*models.Society, error) {
+	collection := models.DB.Database("ThaparEventsDb").Collection("society")
+
+	filter := bson.M{"email": email}
+	society := &models.Society{}
+	err := collection.FindOne(context.TODO(), filter).Decode(society)
+	if err != nil {
+		return nil, err
+	}
+
+	return society, nil
+}
+
+func Helper_ListAllSocieties() ([]models.Society, error) {
+	collection := models.DB.Database("ThaparEventsDb").Collection("society")
+
+	cursor, err := collection.Find(context.TODO(), bson.D{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var societies []models.Society
+	if err := cursor.All(context.TODO(), &societies); err != nil {
+		return nil, fmt.Errorf("failed to decode societies: %s", err)
+	}
+
+	return societies, nil
 }

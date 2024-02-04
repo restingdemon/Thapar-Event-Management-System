@@ -8,11 +8,9 @@ import (
 	"fmt"
 	"net/http"
 
-	//"github.com/gorilla/mux"
 	"github.com/restingdemon/thaparEvents/helpers"
 	"github.com/restingdemon/thaparEvents/models"
 	"github.com/restingdemon/thaparEvents/utils"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -178,7 +176,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the user in the database
-	err = updateUser(updatedUser)
+	err = helpers.Helper_UpdateUser(updatedUser)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to update user: %s", err), http.StatusInternalServerError)
 		return
@@ -199,28 +197,4 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
-}
-
-func updateUser(user *models.User) error {
-	collection := models.DB.Database("ThaparEventsDb").Collection("users")
-
-	update := bson.M{
-		"$set": models.User{
-			Email:           user.Email,
-			Name:            user.Name,
-			Phone:           user.Phone,
-			RollNo:          user.RollNo,
-			Branch:          user.Branch,
-			YearOfAdmission: user.YearOfAdmission,
-			Role:            user.Role,
-		},
-	}
-
-	// Update user in the database based on the email
-	_, err := collection.UpdateOne(context.Background(), bson.M{"email": user.Email}, update)
-	if err != nil {
-		return fmt.Errorf("failed to update user: %s", err)
-	}
-
-	return nil
 }
