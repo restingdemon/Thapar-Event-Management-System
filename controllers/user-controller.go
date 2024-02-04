@@ -45,7 +45,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 	// Check if the user already exists in the database based on their email
 	existingUser, err := helpers.Helper_GetUserByEmail(user.Email)
-	if err!= nil && !errors.Is(err, mongo.ErrNoDocuments) {
+	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		http.Error(w, fmt.Sprintf("Failed to check user existence: %s", err), http.StatusInternalServerError)
 		return
 	}
@@ -136,10 +136,9 @@ func GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// Parse request body to get the updated user details
-	var updatedUser = &GoogleUser{}
+	var updatedUser = &models.User{}
 	utils.ParseBody(r, updatedUser)
 
 	// Extract email from the context
@@ -167,26 +166,19 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert existingUser to GoogleUser for the update process
-	googleExistingUser := &GoogleUser{
+	updatedUser = &models.User{
 		ID:              existingUser.ID,
 		Email:           existingUser.Email,
-		Name:            existingUser.Name,
-		Phone:           existingUser.Phone,
-		RollNo:          existingUser.RollNo,
-		Branch:          existingUser.Branch,
-		YearOfAdmission: existingUser.YearOfAdmission,
+		Name:            updatedUser.Name,
+		Phone:           updatedUser.Phone,
+		RollNo:          updatedUser.RollNo,
+		Branch:          updatedUser.Branch,
+		YearOfAdmission: updatedUser.YearOfAdmission,
 		Role:            existingUser.Role,
-		Token:           "",
 	}
 
-	// Update user details
-	googleExistingUser.Name = updatedUser.Name
-	googleExistingUser.Phone = updatedUser.Phone
-	googleExistingUser.RollNo = updatedUser.RollNo
-	googleExistingUser.Branch = updatedUser.Branch
-
 	// Update the user in the database
-	err = updateUser(googleExistingUser)
+	err = updateUser(updatedUser)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to update user: %s", err), http.StatusInternalServerError)
 		return
@@ -195,35 +187,32 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// Return the updated user data as a JSON response
 	response := map[string]interface{}{
 		"user": map[string]interface{}{
-			"_id":               googleExistingUser.ID.Hex(),
-			"email":             googleExistingUser.Email,
-			"name":              googleExistingUser.Name,
-			"phone":             googleExistingUser.Phone,
-			"rollno":            googleExistingUser.RollNo,
-			"branch":            googleExistingUser.Branch,
-			"year_of_admission": googleExistingUser.YearOfAdmission,
-			"role":              googleExistingUser.Role,
+			"_id":               updatedUser.ID.Hex(),
+			"email":             updatedUser.Email,
+			"name":              updatedUser.Name,
+			"phone":             updatedUser.Phone,
+			"rollno":            updatedUser.RollNo,
+			"branch":            updatedUser.Branch,
+			"year_of_admission": updatedUser.YearOfAdmission,
+			"role":              updatedUser.Role,
 		},
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
 
-
-
-func updateUser(user *GoogleUser) error {
+func updateUser(user *models.User) error {
 	collection := models.DB.Database("ThaparEventsDb").Collection("users")
 
-	// Convert GoogleUser to models.User for updating
 	update := bson.M{
 		"$set": models.User{
-			Email:			 user.Email,
+			Email:           user.Email,
 			Name:            user.Name,
 			Phone:           user.Phone,
 			RollNo:          user.RollNo,
 			Branch:          user.Branch,
 			YearOfAdmission: user.YearOfAdmission,
-			Role:			 user.Role,
+			Role:            user.Role,
 		},
 	}
 

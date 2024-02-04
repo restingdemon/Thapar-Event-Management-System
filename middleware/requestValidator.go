@@ -25,8 +25,7 @@ func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType strin
 		sjhda := ctx.Value("email")
 		fmt.Println(sjhda)
 		return ctx, nil
-		
-	
+
 	case strings.HasPrefix(r.URL.Path, "/users/update"):
 		// extracting email from path parameters
 		vars := mux.Vars(r)
@@ -34,8 +33,12 @@ func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType strin
 		if !ok {
 			return ctx, fmt.Errorf("no email provided")
 		}
+		if userType == "superadmin" {
+			ctx = context.WithValue(ctx, "email", email)
+			return ctx, nil
+		}
 		if email != userEmail {
-			return ctx, fmt.Errorf("permission denied: you can only update your own details")
+			return ctx, fmt.Errorf("you can only update your own details")
 		}
 
 		ctx = context.WithValue(ctx, "email", email)
