@@ -69,22 +69,53 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return the user data and tokens as a JSON response
-	response := map[string]interface{}{
-		"user": map[string]interface{}{
-			"_id":               existingUser.ID.Hex(),
-			"email":             existingUser.Email,
-			"name":              existingUser.Name,
-			"phone":             existingUser.Phone,
-			"rollno":            existingUser.RollNo,
-			"branch":            existingUser.Branch,
-			"year_of_admission": existingUser.YearOfAdmission,
-			"role":              existingUser.Role,
-		},
-		"token":         token,
-		"refresh_token": refreshToken,
+	if existingUser.Role == utils.AdminRole {
+		society, err := helpers.Helper_GetSocietyByEmail(existingUser.Email)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				http.Error(w, "Society not found", http.StatusNotFound)
+			} else {
+				http.Error(w, fmt.Sprintf("Failed to get society: %s", err), http.StatusInternalServerError)
+			}
+			return
+		}
+
+		response := map[string]interface{}{
+			"society": map[string]interface{}{
+				"_Sid":              society.Soc_ID.Hex(),
+				"_Uid":              society.User_ID.Hex(),
+				"email":             society.Email,
+				"name":              society.Name,
+				"year_of_formation": society.YearOfFormation,
+				"role":              society.Role,
+				"about":             society.About,
+			},
+			"token":         token,
+			"refresh_token": refreshToken,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		json.NewEncoder(w).Encode(response)
+	} else {
+		response := map[string]interface{}{
+			"user": map[string]interface{}{
+				"_id":               existingUser.ID.Hex(),
+				"email":             existingUser.Email,
+				"name":              existingUser.Name,
+				"phone":             existingUser.Phone,
+				"rollno":            existingUser.RollNo,
+				"branch":            existingUser.Branch,
+				"year_of_admission": existingUser.YearOfAdmission,
+				"role":              existingUser.Role,
+			},
+			"token":         token,
+			"refresh_token": refreshToken,
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+
 }
 
 func createUser(googleUser *GoogleUser) error {

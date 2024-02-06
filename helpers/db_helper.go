@@ -99,3 +99,27 @@ func Helper_ListAllSocieties() ([]models.Society, error) {
 
 	return societies, nil
 }
+
+func Helper_UpdateSoc(soc *models.Society) error {
+	collection := models.DB.Database("ThaparEventsDb").Collection("society")
+
+	update := bson.M{
+		"$set": models.Society{
+			Soc_ID: soc.Soc_ID,
+			User_ID: soc.User_ID,
+			Email: soc.Email,
+			Name: soc.Name,
+			YearOfFormation: soc.YearOfFormation,
+			Role: soc.Role,
+			About: soc.About,
+		},
+	}
+
+	// Update user in the database based on the email
+	_, err := collection.UpdateOne(context.Background(), bson.M{"email": soc.Email}, update)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %s", err)
+	}
+
+	return nil
+}

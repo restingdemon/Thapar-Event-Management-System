@@ -49,6 +49,27 @@ func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType strin
 		if userType != utils.SuperAdminRole {
 			return ctx, fmt.Errorf("Invalid Role")
 		}
+	case strings.HasPrefix(r.URL.Path, "/soc/update"):
+		vars := mux.Vars(r)
+		email, ok := vars["email"]
+		if !ok {
+			return ctx, fmt.Errorf("no email provided")
+		}
+		if userType == utils.SuperAdminRole {
+			ctx = context.WithValue(ctx, "email", email)
+			ctx = context.WithValue(ctx, "role", utils.SuperAdminRole)
+			return ctx, nil
+		} else if userType == utils.AdminRole{
+			if email != userEmail {
+				return ctx, fmt.Errorf("you can only update your own details")
+			}
+			ctx = context.WithValue(ctx, "email", userEmail)
+			ctx = context.WithValue(ctx, "role", userType)
+			return ctx, nil
+		} else {
+			return ctx, fmt.Errorf("Invalid Role")
+		}
+
 	}
 
 	// Default to allowing access if the route is not explicitly handled

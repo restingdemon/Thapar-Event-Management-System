@@ -121,3 +121,65 @@ func GetSocietyDetails(w http.ResponseWriter, r *http.Request) {
 		w.Write(response)
 	}
 }
+
+func UpdateSociety(w http.ResponseWriter, r *http.Request) {
+	var updatedSociety = &models.Society{}
+	utils.ParseBody(r, updatedSociety)
+	emailValue := r.Context().Value("email")
+	if emailValue == nil {
+		http.Error(w, "Email not found in context", http.StatusInternalServerError)
+		return
+	}
+	roleValue := r.Context().Value("role")
+	if roleValue == nil {
+		http.Error(w, "Role not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	email, ok := emailValue.(string)
+	if !ok {
+		http.Error(w, "Failed to retrieve email from context", http.StatusInternalServerError)
+		return
+	}
+	role, ok := roleValue.(string)
+	if !ok {
+		http.Error(w, "Failed to retrieve email from context", http.StatusInternalServerError)
+		return
+	}
+
+	if role == utils.AdminRole || role == utils.SuperAdminRole {
+		existingSoc, err := helpers.Helper_GetSocietyByEmail(email)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				http.Error(w, fmt.Sprintf("Soc not found"), http.StatusNotFound)
+			} else {
+				http.Error(w, fmt.Sprintf("Failed to get Soc: %s", err), http.StatusInternalServerError)
+			}
+			return
+		}
+		updatedSociety = &models.Society{
+			Soc_ID:          existingSoc.Soc_ID,
+			User_ID:         existingSoc.User_ID,
+			Email:           existingSoc.Email,
+			Name:            updatedSociety.Name,
+			Role:            existingSoc.Role,
+			YearOfFormation: updatedSociety.YearOfFormation,
+			About:           updatedSociety.About,
+		}
+		err = helpers.Helper_UpdateSoc(updatedSociety)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to update soc: %s", err), http.StatusInternalServerError)
+			return
+		}
+
+		response, err := json.Marshal(updatedSociety)
+		if err != nil {
+			http.Error(w, "Failed to marshal society details", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(response)
+	}
+}
