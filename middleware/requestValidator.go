@@ -59,7 +59,7 @@ func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType strin
 			ctx = context.WithValue(ctx, "email", email)
 			ctx = context.WithValue(ctx, "role", utils.SuperAdminRole)
 			return ctx, nil
-		} else if userType == utils.AdminRole{
+		} else if userType == utils.AdminRole {
 			if email != userEmail {
 				return ctx, fmt.Errorf("you can only update your own details")
 			}
@@ -69,6 +69,8 @@ func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType strin
 		} else {
 			return ctx, fmt.Errorf("Invalid Role")
 		}
+	case strings.HasPrefix(r.URL.Path, "/event/create"):
+		
 
 	}
 
