@@ -7,6 +7,7 @@ import (
 	"github.com/restingdemon/thaparEvents/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func Helper_GetUserByID(userID primitive.ObjectID) (*models.User, error) {
@@ -105,13 +106,13 @@ func Helper_UpdateSoc(soc *models.Society) error {
 
 	update := bson.M{
 		"$set": models.Society{
-			Soc_ID: soc.Soc_ID,
-			User_ID: soc.User_ID,
-			Email: soc.Email,
-			Name: soc.Name,
+			Soc_ID:          soc.Soc_ID,
+			User_ID:         soc.User_ID,
+			Email:           soc.Email,
+			Name:            soc.Name,
 			YearOfFormation: soc.YearOfFormation,
-			Role: soc.Role,
-			About: soc.About,
+			Role:            soc.Role,
+			About:           soc.About,
 		},
 	}
 
@@ -123,3 +124,26 @@ func Helper_UpdateSoc(soc *models.Society) error {
 
 	return nil
 }
+
+func Helper_CreateEvent(event *models.Event) (*mongo.InsertOneResult,error) {
+	collection := models.DB.Database("ThaparEventsDb").Collection("event")
+
+	result, err := collection.InsertOne(context.Background(), event)
+	if err != nil {
+		return result,fmt.Errorf("failed to insert user: %s", err)
+	}
+
+	return result,nil
+}
+
+
+// func Helper_GetEventById(Event_ID string) error {
+// 	collection := models.DB.Database("ThaparEventsDb").Collection("event")
+
+// 	_, err := collection.InsertOne(context.Background(), event)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to insert user: %s", err)
+// 	}
+
+// 	return nil
+// }
