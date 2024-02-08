@@ -36,6 +36,23 @@ func Helper_GetUserByEmail(email string) (*models.User, error) {
 	return user, nil
 }
 
+func GetAllUsers() ([]models.User, error) {
+	collection := models.DB.Database("ThaparEventsDb").Collection("users")
+
+	cursor, err := collection.Find(context.TODO(), bson.D{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch users: %s", err)
+	}
+	defer cursor.Close(context.TODO())
+
+	var users []models.User
+	if err := cursor.All(context.TODO(), &users); err != nil {
+		return nil, fmt.Errorf("failed to decode users: %s", err)
+	}
+
+	return users, nil
+}
+
 func Helper_UpdateUser(user *models.User) error {
 	collection := models.DB.Database("ThaparEventsDb").Collection("users")
 
@@ -125,17 +142,16 @@ func Helper_UpdateSoc(soc *models.Society) error {
 	return nil
 }
 
-func Helper_CreateEvent(event *models.Event) (*mongo.InsertOneResult,error) {
+func Helper_CreateEvent(event *models.Event) (*mongo.InsertOneResult, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("event")
 
 	result, err := collection.InsertOne(context.Background(), event)
 	if err != nil {
-		return result,fmt.Errorf("failed to insert user: %s", err)
+		return result, fmt.Errorf("failed to insert user: %s", err)
 	}
 
-	return result,nil
+	return result, nil
 }
-
 
 // func Helper_GetEventById(Event_ID string) error {
 // 	collection := models.DB.Database("ThaparEventsDb").Collection("event")

@@ -165,6 +165,22 @@ func GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+
+func GetAllUsers(w http.ResponseWriter, r *http.Request) {
+    // Fetch all users' details from the database
+    users, err := helpers.GetAllUsers()
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    // Return the users' details as a JSON response
+    response := map[string]interface{}{
+        "users": users,
+    }
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(response)
+}
+
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// Parse request body to get the updated user details
 	var updatedUser = &models.User{}
