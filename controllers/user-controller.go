@@ -136,51 +136,46 @@ func createUser(googleUser *GoogleUser) error {
 }
 
 func GetUserByEmail(w http.ResponseWriter, r *http.Request) {
-	email := r.Context().Value("email").(string)
-	// Retrieve the user from the database based on the ID
-	user, err := helpers.Helper_GetUserByEmail(email)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			http.Error(w, fmt.Sprintf("User not found"), http.StatusNotFound)
-		} else {
-			http.Error(w, fmt.Sprintf("Failed to get user: %s", err), http.StatusInternalServerError)
+	queryParams := r.URL.Query()
+	email := queryParams.Get("email")
+	if email == "" {
+		users, err := helpers.Helper_ListAllUsers()
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to list all users: %s", err), http.StatusInternalServerError)
+			return
 		}
-		return
+
+		response, err := json.Marshal(users)
+		if err != nil {
+			http.Error(w, "Failed to marshal users", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(response)
+	} else {
+		user, err := helpers.Helper_GetUserByEmail(email)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				http.Error(w, "User not found", http.StatusNotFound)
+			} else {
+				http.Error(w, fmt.Sprintf("Failed to get User: %s", err), http.StatusInternalServerError)
+			}
+			return
+		}
+
+		response, err := json.Marshal(user)
+		if err != nil {
+			http.Error(w, "Failed to marshal user details", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(response)
 	}
-
-	// Return the user data as a JSON response
-	response := map[string]interface{}{
-		"user": map[string]interface{}{
-			"_id":               user.ID.Hex(),
-			"email":             user.Email,
-			"name":              user.Name,
-			"phone":             user.Phone,
-			"rollno":            user.RollNo,
-			"branch":            user.Branch,
-			"year_of_admission": user.YearOfAdmission,
-			"role":              user.Role,
-		},
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
 }
-
-
-func GetAllUsers(w http.ResponseWriter, r *http.Request) {
-    // Fetch all users' details from the database
-    users, err := helpers.GetAllUsers()
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
-    // Return the users' details as a JSON response
-    response := map[string]interface{}{
-        "users": users,
-    }
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(response)
-}
-
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// Parse request body to get the updated user details
 	var updatedUser = &models.User{}

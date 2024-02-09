@@ -36,12 +36,12 @@ func Helper_GetUserByEmail(email string) (*models.User, error) {
 	return user, nil
 }
 
-func GetAllUsers() ([]models.User, error) {
+func Helper_ListAllUsers() ([]models.User, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("users")
 
 	cursor, err := collection.Find(context.TODO(), bson.D{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch users: %s", err)
+		return nil, err
 	}
 	defer cursor.Close(context.TODO())
 
