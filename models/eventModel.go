@@ -14,4 +14,5 @@ type Event struct {
 	Date        int64                  `json:"date" bson:"date"`
 	Visibility  bool                   `json:"visibility" bson:"visibility"`
 	Additional  map[string]interface{} `json:"additional,omitempty" bson:"additional,omitempty"`
+	Parameters  map[string]interface{} `json:"parameters,omitempty" bson:"parameters,omitempty"`
 }

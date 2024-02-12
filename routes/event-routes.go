@@ -7,4 +7,5 @@ import (
 
 var RegisterEventRoutes = func(router *mux.Router) {
 	router.HandleFunc("/event/create/{email}", controller.CreateEvent).Methods("POST")
+	router.HandleFunc("/event/update/{eventId}", controller.UpdateEvent).Methods("POST")
 }

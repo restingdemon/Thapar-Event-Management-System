@@ -153,13 +153,45 @@ func Helper_CreateEvent(event *models.Event) (*mongo.InsertOneResult, error) {
 	return result, nil
 }
 
-// func Helper_GetEventById(Event_ID string) error {
-// 	collection := models.DB.Database("ThaparEventsDb").Collection("event")
+func Helper_GetEventById(Event_ID string) (*models.Event, error) {
+	collection := models.DB.Database("ThaparEventsDb").Collection("event")
 
-// 	_, err := collection.InsertOne(context.Background(), event)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to insert user: %s", err)
-// 	}
+	objID, err := primitive.ObjectIDFromHex(Event_ID)
+    if err != nil {
+        return nil, err
+    }
 
-// 	return nil
-// }
+	filter := bson.M{"_id": objID}
+	event := &models.Event{}
+	err = collection.FindOne(context.TODO(), filter).Decode(event)
+	if err != nil {
+		return nil, err
+	}
+
+	return event, nil
+}
+func Helper_UpdateEvent(event *models.Event) error {
+	collection := models.DB.Database("ThaparEventsDb").Collection("event")
+
+	update := bson.M{
+		"$set": models.Event{
+			Event_ID:    event.Event_ID,
+			Soc_ID:      event.Soc_ID,
+			User_ID:     event.User_ID,
+			Soc_Email:   event.Soc_Email,
+			Title:       event.Title,
+			Description: event.Description,
+			Date:        event.Date,
+			Additional:  event.Additional,
+			Parameters:  event.Parameters,
+		},
+	}
+
+	// Update user in the database based on the email
+	_, err := collection.UpdateOne(context.Background(), bson.M{"_id": event.Event_ID}, update)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %s", err)
+	}
+
+	return nil
+}
