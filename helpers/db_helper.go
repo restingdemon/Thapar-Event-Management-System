@@ -157,9 +157,9 @@ func Helper_GetEventById(Event_ID string) (*models.Event, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("event")
 
 	objID, err := primitive.ObjectIDFromHex(Event_ID)
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 
 	filter := bson.M{"_id": objID}
 	event := &models.Event{}
@@ -175,15 +175,18 @@ func Helper_UpdateEvent(event *models.Event) error {
 
 	update := bson.M{
 		"$set": models.Event{
-			Event_ID:    event.Event_ID,
-			Soc_ID:      event.Soc_ID,
-			User_ID:     event.User_ID,
-			Soc_Email:   event.Soc_Email,
-			Title:       event.Title,
-			Description: event.Description,
-			Date:        event.Date,
-			Additional:  event.Additional,
-			Parameters:  event.Parameters,
+			Event_ID:       event.Event_ID,
+			Soc_ID:         event.Soc_ID,
+			User_ID:        event.User_ID,
+			Soc_Email:      event.Soc_Email,
+			Title:          event.Title,
+			Description:    event.Description,
+			Date:           event.Date,
+			Additional:     event.Additional,
+			Parameters:     event.Parameters,
+			Team:           event.Team,
+			MaxTeamMembers: event.MaxTeamMembers,
+			MinTeamMembers: event.MinTeamMembers,
 		},
 	}
 
@@ -194,4 +197,45 @@ func Helper_UpdateEvent(event *models.Event) error {
 	}
 
 	return nil
+}
+
+func Helper_CreateRegistration(registration *models.Registration) (*mongo.InsertOneResult, error) {
+	collection := models.DB.Database("ThaparEventsDb").Collection("registrations")
+
+	result, err := collection.InsertOne(context.Background(), registration)
+	if err != nil {
+		return result, fmt.Errorf("failed to register user: %s", err)
+	}
+
+	return result, nil
+}
+
+func Helper_GetRegistrationByEmailAndEvent(email string, eventID primitive.ObjectID) (*models.Registration, error) {
+	collection := models.DB.Database("ThaparEventsDb").Collection("registrations")
+
+	filter := bson.M{"email": email, "_eid": eventID}
+	registration := &models.Registration{}
+	err := collection.FindOne(context.TODO(), filter).Decode(registration)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil // Return nil if no registration found
+		}
+		return nil, err
+	}
+
+	return registration, nil
+}
+
+func Helper_IsTeamMemberRegisteredForEvent(eventId primitive.ObjectID, teamEmail string) (bool, error) {
+	collection := models.DB.Database("ThaparEventsDb").Collection("registrations")
+	filter := bson.M{
+		"_eid":        eventId,
+		"team_emails": bson.M{"$in": []string{teamEmail}},
+	}
+
+	count, err := collection.CountDocuments(context.TODO(), filter)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

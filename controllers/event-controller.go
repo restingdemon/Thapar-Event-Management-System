@@ -120,15 +120,18 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	updatedEvent = &models.Event{
-		Soc_ID:      existingEvent.Soc_ID,
-		Event_ID:    existingEvent.Event_ID,
-		User_ID:     existingEvent.User_ID,
-		Soc_Email:   existingEvent.Soc_Email,
-		Title:       updatedEvent.Title,
-		Description: updatedEvent.Description,
-		Date:        updatedEvent.Date,
-		Additional:  updatedEvent.Additional,
-		Parameters:  updatedEvent.Parameters,
+		Soc_ID:         existingEvent.Soc_ID,
+		Event_ID:       existingEvent.Event_ID,
+		User_ID:        existingEvent.User_ID,
+		Soc_Email:      existingEvent.Soc_Email,
+		Title:          updatedEvent.Title,
+		Description:    updatedEvent.Description,
+		Date:           updatedEvent.Date,
+		Additional:     updatedEvent.Additional,
+		Parameters:     updatedEvent.Parameters,
+		Team:           updatedEvent.Team,
+		MaxTeamMembers: updatedEvent.MaxTeamMembers,
+		MinTeamMembers: updatedEvent.MinTeamMembers,
 	}
 	err = helpers.Helper_UpdateEvent(updatedEvent)
 	if err != nil {
