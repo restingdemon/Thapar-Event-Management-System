@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/restingdemon/thaparEvents/helpers"
 	"github.com/restingdemon/thaparEvents/models"
 	"github.com/restingdemon/thaparEvents/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"net/http"
+	"gopkg.in/gomail.v2"
 )
 
 //register participant ----> for user only
@@ -90,6 +92,12 @@ func CreateRegistration(w http.ResponseWriter, r *http.Request) {
 	}
 	regisDetails.Participant_ID = result.InsertedID.(primitive.ObjectID)
 
+	err = sendRegistrationConfirmationEmail(regisDetails, existingEvent.Title)
+	if err != nil {
+		// Log error but don't halt the registration process
+		fmt.Printf("Failed to send email notification: %v\n", err)
+	}
+
 	response, err := json.Marshal(regisDetails)
 	if err != nil {
 		http.Error(w, "Failed to marshal registration details", http.StatusInternalServerError)
@@ -104,3 +112,31 @@ func CreateRegistration(w http.ResponseWriter, r *http.Request) {
 //get registration ----> for user only to check its registration within team emails with particular eventId, if no team event then just check email
 
 //getAllRegistrations ----> for admin and superadmin
+
+func sendRegistrationConfirmationEmail(regisDetails *models.Registration, eventName string) error {
+
+	d := gomail.NewDialer("smtp.gmail.com", 587, "thapar.events.ajak@gmail.com", "Ajak@123")
+
+	var recipientEmails []string
+	if regisDetails.Team {
+		recipientEmails = regisDetails.TeamEmails
+	} else {
+		recipientEmails = []string{regisDetails.Email}
+	}
+	for _, recipientEmail := range recipientEmails {
+		m := gomail.NewMessage()
+		m.SetHeader("From", "thapar.events.ajak@gmail.com")
+		m.SetHeader("To", recipientEmail)
+		m.SetHeader("Subject", "Registration Confirmation for "+eventName)
+		m.SetBody("text/html", "Dear Participant,<br><br>Thank you for registering for "+eventName+".<br><br>We look forward to seeing you at the event.<br><br>Best Regards,<br>AJAK")
+
+		// Send the email
+		if err := d.DialAndSend(m); err != nil {
+			fmt.Printf("Failed to send email notification to %s: %v\n", recipientEmail, err)
+			return err
+		}
+	}
+	return nil
+}
+
+//NO Auth
