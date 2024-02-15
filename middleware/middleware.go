@@ -11,14 +11,17 @@ import (
 
 var AuthenticationNotRequired map[string]bool = map[string]bool{
 	"/create": true,
+
 	"/events/get": true, 
+
+	"/soc/get":true,
+
 }
 
 var RoleMethods = map[string][]string{
 	"/users/get":       {utils.AdminRole, utils.SuperAdminRole},
 	"/users/update/":   {utils.AdminRole, utils.UserRole, utils.SuperAdminRole},
 	"/soc/register":    {utils.SuperAdminRole},
-	"/soc/get":         {utils.AdminRole, utils.UserRole, utils.SuperAdminRole},
 	"/soc/update/":     {utils.AdminRole, utils.SuperAdminRole},
 	"/event/create":    {utils.AdminRole, utils.SuperAdminRole},
 	"/event/update/":   {utils.AdminRole, utils.SuperAdminRole},
