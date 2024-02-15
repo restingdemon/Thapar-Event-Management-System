@@ -239,3 +239,20 @@ func Helper_IsTeamMemberRegisteredForEvent(eventId primitive.ObjectID, teamEmail
 	}
 	return count > 0, nil
 }
+
+func Helper_GetAllEvents() ([]models.Event, error) {
+	collection := models.DB.Database("ThaparEventsDb").Collection("event")
+
+	cursor, err := collection.Find(context.TODO(), bson.D{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var events []models.Event
+	if err := cursor.All(context.TODO(), &events); err != nil {
+		return nil, fmt.Errorf("failed to decode events: %s", err)
+	}
+
+	return events, nil
+}

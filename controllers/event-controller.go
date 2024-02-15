@@ -151,4 +151,21 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//event get
+func GetAllEvents(w http.ResponseWriter, r *http.Request) {
+	events, err := helpers.Helper_GetAllEvents()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to get events: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	response, err := json.Marshal(events)
+	if err != nil {
+		http.Error(w, "Failed to marshal events details", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+}
+
