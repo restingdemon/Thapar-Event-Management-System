@@ -45,6 +45,13 @@ func CreateRegistration(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	for key := range regisDetails.Parameters {
+		if _, ok := existingEvent.Parameters[key]; !ok {
+			http.Error(w, fmt.Sprintf("missing parameter '%s' in registration", key), http.StatusBadRequest)
+			return
+		}
+	}
+
 	if existingEvent.Team != regisDetails.Team {
 		http.Error(w, fmt.Sprintf("Invaid type of Registration"), http.StatusNotFound)
 		return
@@ -138,5 +145,3 @@ func sendRegistrationConfirmationEmail(regisDetails *models.Registration, eventN
 	}
 	return nil
 }
-
-//NO Auth
