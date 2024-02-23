@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/restingdemon/thaparEvents/helpers"
 	"github.com/restingdemon/thaparEvents/utils"
 )
 
@@ -91,6 +92,36 @@ func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType strin
 		} else {
 			return ctx, fmt.Errorf("Invalid Role")
 		}
+	case strings.HasPrefix(r.URL.Path, "/event/get/registrations"):
+		vars := mux.Vars(r)
+		eventId, ok := vars["eventId"]
+		if !ok {
+			return ctx, fmt.Errorf("no Event Id provided")
+		}
+
+		if userType == utils.SuperAdminRole {
+			ctx = context.WithValue(ctx, "eventId", eventId)
+			ctx = context.WithValue(ctx, "role", utils.SuperAdminRole)
+			ctx = context.WithValue(ctx, "userType", userType)
+			return ctx, nil
+		} else if userType == utils.AdminRole {
+			ctx = context.WithValue(ctx, "eventId", eventId)
+			ctx = context.WithValue(ctx, "role", userType)
+			ctx = context.WithValue(ctx, "email", userEmail)
+			ctx = context.WithValue(ctx, "userType", userType)
+
+			// Fetch and set the society ID based on the admin's email
+			socDetails, err := helpers.Helper_GetSocietyByEmail(userEmail)
+			if err != nil {
+				return ctx, fmt.Errorf("failed to get society details: %s", err)
+			}
+			ctx = context.WithValue(ctx, "societyID", socDetails.Soc_ID)
+
+			return ctx, nil
+		} else {
+			return ctx, fmt.Errorf("Invalid Role")
+		}
+
 	}
 
 	// Default to allowing access if the route is not explicitly handled

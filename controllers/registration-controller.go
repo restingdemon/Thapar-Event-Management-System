@@ -119,6 +119,49 @@ func CreateRegistration(w http.ResponseWriter, r *http.Request) {
 //get registration ----> for user only to check its registration within team emails with particular eventId, if no team event then just check email
 
 //getAllRegistrations ----> for admin and superadmin
+func GetAllRegistrations(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    eventID, ok := vars["eventId"]
+    if !ok {
+        http.Error(w, "Event ID not provided in the request", http.StatusBadRequest)
+        return
+    }
+    userType, ok := r.Context().Value("userType").(string)
+    if !ok {
+        http.Error(w, "User type not available in the request context", http.StatusInternalServerError)
+        return
+    }
+
+    var socID primitive.ObjectID
+    if userType == utils.AdminRole {
+        // Fetch society ID only for admin role
+        var ok bool
+        socID, ok = r.Context().Value("societyID").(primitive.ObjectID)
+        if !ok {
+            http.Error(w, "Society ID not available in the request context for admin", http.StatusInternalServerError)
+            return
+        }
+    }
+
+    objectEventID, err := primitive.ObjectIDFromHex(eventID)
+    if err != nil {
+        http.Error(w, "Invalid Event ID provided", http.StatusBadRequest)
+        return
+    }
+    registrations, err := helpers.Helper_GetAllRegistrations(userType, objectEventID, socID)
+    if err != nil {
+        http.Error(w, fmt.Sprintf("Failed to get registrations: %s", err), http.StatusInternalServerError)
+        return
+    }
+    response, err := json.Marshal(registrations)
+    if err != nil {
+        http.Error(w, "Failed to marshal registration details", http.StatusInternalServerError)
+        return
+    }
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+    w.Write(response)
+}
 
 func sendRegistrationConfirmationEmail(regisDetails *models.Registration, eventName string) error {
 

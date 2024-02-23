@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/restingdemon/thaparEvents/models"
+	"github.com/restingdemon/thaparEvents/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -255,4 +256,36 @@ func Helper_GetAllEvents() ([]models.Event, error) {
 	}
 
 	return events, nil
+}
+
+func Helper_GetAllRegistrations(userType string, eventID, Soc_ID primitive.ObjectID) ([]models.Registration, error) {
+    var registrations []models.Registration
+    collection := models.DB.Database("ThaparEventsDb").Collection("registrations")
+
+    filter := bson.M{"_eid": eventID}
+
+    // If the user is an admin filtering by society ID
+    if userType == utils.AdminRole {
+        filter["_sid"] = Soc_ID
+    }
+
+    cursor, err := collection.Find(context.TODO(), filter)
+    if err != nil {
+        return nil, err
+    }
+    defer cursor.Close(context.TODO())
+
+    for cursor.Next(context.TODO()) {
+        var registration models.Registration
+        if err := cursor.Decode(&registration); err != nil {
+            return nil, err
+        }
+        registrations = append(registrations, registration)
+    }
+
+    if err := cursor.Err(); err != nil {
+        return nil, err
+    }
+
+    return registrations, nil
 }
