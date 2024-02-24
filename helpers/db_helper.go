@@ -59,13 +59,14 @@ func Helper_UpdateUser(user *models.User) error {
 
 	update := bson.M{
 		"$set": models.User{
-			Email:           user.Email,
-			Name:            user.Name,
-			Phone:           user.Phone,
-			RollNo:          user.RollNo,
-			Branch:          user.Branch,
-			YearOfAdmission: user.YearOfAdmission,
-			Role:            user.Role,
+			Email:  user.Email,
+			Name:   user.Name,
+			Phone:  user.Phone,
+			RollNo: user.RollNo,
+			Branch: user.Branch,
+			Batch:  user.Batch,
+			Role:   user.Role,
+			Image:  user.Image,
 		},
 	}
 
@@ -243,7 +244,7 @@ func Helper_IsTeamMemberRegisteredForEvent(eventId primitive.ObjectID, teamEmail
 
 func Helper_GetAllEvents() ([]models.Event, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("event")
-	filter := bson.M{"visibility":true}
+	filter := bson.M{"visibility": true}
 	cursor, err := collection.Find(context.TODO(), filter)
 	if err != nil {
 		return nil, err

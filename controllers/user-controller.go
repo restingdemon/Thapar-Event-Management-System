@@ -100,14 +100,15 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	} else {
 		response := map[string]interface{}{
 			"user": map[string]interface{}{
-				"_id":               existingUser.ID.Hex(),
-				"email":             existingUser.Email,
-				"name":              existingUser.Name,
-				"phone":             existingUser.Phone,
-				"rollno":            existingUser.RollNo,
-				"branch":            existingUser.Branch,
-				"year_of_admission": existingUser.YearOfAdmission,
-				"role":              existingUser.Role,
+				"_id":    existingUser.ID.Hex(),
+				"email":  existingUser.Email,
+				"name":   existingUser.Name,
+				"phone":  existingUser.Phone,
+				"rollno": existingUser.RollNo,
+				"branch": existingUser.Branch,
+				"batch":  existingUser.Batch,
+				"role":   existingUser.Role,
+				"image":  existingUser.Image,
 			},
 			"token":         token,
 			"refresh_token": refreshToken,
@@ -211,14 +212,15 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	// Convert existingUser to GoogleUser for the update process
 	updatedUser = &models.User{
-		ID:              existingUser.ID,
-		Email:           existingUser.Email,
-		Name:            updatedUser.Name,
-		Phone:           updatedUser.Phone,
-		RollNo:          updatedUser.RollNo,
-		Branch:          updatedUser.Branch,
-		YearOfAdmission: updatedUser.YearOfAdmission,
-		Role:            existingUser.Role,
+		ID:     existingUser.ID,
+		Email:  existingUser.Email,
+		Name:   existingUser.Name,
+		Phone:  updatedUser.Phone,
+		RollNo: updatedUser.RollNo,
+		Branch: updatedUser.Branch,
+		Batch:  updatedUser.Batch,
+		Role:   existingUser.Role,
+		Image:  updatedUser.Image,
 	}
 
 	// Update the user in the database
@@ -231,14 +233,15 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// Return the updated user data as a JSON response
 	response := map[string]interface{}{
 		"user": map[string]interface{}{
-			"_id":               updatedUser.ID.Hex(),
-			"email":             updatedUser.Email,
-			"name":              updatedUser.Name,
-			"phone":             updatedUser.Phone,
-			"rollno":            updatedUser.RollNo,
-			"branch":            updatedUser.Branch,
-			"year_of_admission": updatedUser.YearOfAdmission,
-			"role":              updatedUser.Role,
+			"_id":    updatedUser.ID.Hex(),
+			"email":  updatedUser.Email,
+			"name":   updatedUser.Name,
+			"phone":  updatedUser.Phone,
+			"rollno": updatedUser.RollNo,
+			"branch": updatedUser.Branch,
+			"batch":  updatedUser.Batch,
+			"role":   updatedUser.Role,
+			"image":  updatedUser.Image,
 		},
 	}
 	w.Header().Set("Content-Type", "application/json")
