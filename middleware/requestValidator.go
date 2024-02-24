@@ -13,6 +13,16 @@ import (
 
 func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType string, userEmail string) (context.Context, error) {
 	switch {
+	case strings.HasPrefix(r.URL.Path, "/users/get"):
+		queryParams := r.URL.Query()
+		email := queryParams.Get("email")
+		if userType == utils.UserRole {
+			ctx = context.WithValue(ctx, "email", userEmail)
+			return ctx, nil
+		} else {
+			ctx = context.WithValue(ctx, "email", email)
+			return ctx, nil
+		}
 	case strings.HasPrefix(r.URL.Path, "/users/update"):
 		// extracting email from path parameters
 		vars := mux.Vars(r)

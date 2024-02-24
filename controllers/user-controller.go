@@ -136,8 +136,12 @@ func createUser(googleUser *GoogleUser) error {
 }
 
 func GetUserByEmail(w http.ResponseWriter, r *http.Request) {
-	queryParams := r.URL.Query()
-	email := queryParams.Get("email")
+	emailValue := r.Context().Value("email")
+	email, ok := emailValue.(string)
+	if !ok {
+		http.Error(w, "Failed to retrieve email from context", http.StatusInternalServerError)
+		return
+	}
 	if email == "" {
 		users, err := helpers.Helper_ListAllUsers()
 		if err != nil {

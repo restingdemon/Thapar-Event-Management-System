@@ -243,8 +243,8 @@ func Helper_IsTeamMemberRegisteredForEvent(eventId primitive.ObjectID, teamEmail
 
 func Helper_GetAllEvents() ([]models.Event, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("event")
-
-	cursor, err := collection.Find(context.TODO(), bson.D{})
+	filter := bson.M{"visibility":true}
+	cursor, err := collection.Find(context.TODO(), filter)
 	if err != nil {
 		return nil, err
 	}
@@ -259,33 +259,33 @@ func Helper_GetAllEvents() ([]models.Event, error) {
 }
 
 func Helper_GetAllRegistrations(userType string, eventID, Soc_ID primitive.ObjectID) ([]models.Registration, error) {
-    var registrations []models.Registration
-    collection := models.DB.Database("ThaparEventsDb").Collection("registrations")
+	var registrations []models.Registration
+	collection := models.DB.Database("ThaparEventsDb").Collection("registrations")
 
-    filter := bson.M{"_eid": eventID}
+	filter := bson.M{"_eid": eventID}
 
-    // If the user is an admin filtering by society ID
-    if userType == utils.AdminRole {
-        filter["_sid"] = Soc_ID
-    }
+	// If the user is an admin filtering by society ID
+	if userType == utils.AdminRole {
+		filter["_sid"] = Soc_ID
+	}
 
-    cursor, err := collection.Find(context.TODO(), filter)
-    if err != nil {
-        return nil, err
-    }
-    defer cursor.Close(context.TODO())
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
 
-    for cursor.Next(context.TODO()) {
-        var registration models.Registration
-        if err := cursor.Decode(&registration); err != nil {
-            return nil, err
-        }
-        registrations = append(registrations, registration)
-    }
+	for cursor.Next(context.TODO()) {
+		var registration models.Registration
+		if err := cursor.Decode(&registration); err != nil {
+			return nil, err
+		}
+		registrations = append(registrations, registration)
+	}
 
-    if err := cursor.Err(); err != nil {
-        return nil, err
-    }
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
 
-    return registrations, nil
+	return registrations, nil
 }

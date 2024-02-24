@@ -10,20 +10,20 @@ import (
 )
 
 var AuthenticationNotRequired map[string]bool = map[string]bool{
-	"/create":     true,
+	"/create":    true,
 	"/event/get": true,
-	"/soc/get":    true,
+	"/soc/get":   true,
 }
 
 var RoleMethods = map[string][]string{
-	"/users/get":       {utils.AdminRole, utils.SuperAdminRole},
-	"/users/update/":   {utils.AdminRole, utils.UserRole, utils.SuperAdminRole},
-	"/soc/register":    {utils.SuperAdminRole},
-	"/soc/update/":     {utils.AdminRole, utils.SuperAdminRole},
-	"/event/create":    {utils.AdminRole, utils.SuperAdminRole},
-	"/event/update/":   {utils.AdminRole, utils.SuperAdminRole},
-	"/event/register/": {utils.UserRole},
-	"/event/get/registrations/":   {utils.AdminRole, utils.SuperAdminRole},
+	"/users/get":                {utils.UserRole, utils.AdminRole, utils.SuperAdminRole},
+	"/users/update/":            {utils.AdminRole, utils.UserRole, utils.SuperAdminRole},
+	"/soc/register":             {utils.SuperAdminRole},
+	"/soc/update/":              {utils.AdminRole, utils.SuperAdminRole},
+	"/event/create":             {utils.AdminRole, utils.SuperAdminRole},
+	"/event/update/":            {utils.AdminRole, utils.SuperAdminRole},
+	"/event/register/":          {utils.UserRole},
+	"/event/get/registrations/": {utils.AdminRole, utils.SuperAdminRole},
 }
 
 // Authenticate is a middleware function that performs authentication
