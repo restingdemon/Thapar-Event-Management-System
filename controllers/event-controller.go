@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/restingdemon/thaparEvents/helpers"
 	"github.com/restingdemon/thaparEvents/models"
 	"github.com/restingdemon/thaparEvents/utils"
@@ -93,7 +94,7 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	existingEvent, err := helpers.Helper_GetEventById(eventId)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			http.Error(w, fmt.Sprintf("Event not found"), http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Event not found: %s", err), http.StatusNotFound)
 		} else {
 			http.Error(w, fmt.Sprintf("Failed to get Event: %s", err), http.StatusInternalServerError)
 		}
@@ -132,6 +133,7 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		Team:           updatedEvent.Team,
 		MaxTeamMembers: updatedEvent.MaxTeamMembers,
 		MinTeamMembers: updatedEvent.MinTeamMembers,
+		Visibility:     existingEvent.Visibility,
 	}
 	err = helpers.Helper_UpdateEvent(updatedEvent)
 	if err != nil {
@@ -141,7 +143,7 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 
 	response, err := json.Marshal(updatedEvent)
 	if err != nil {
-		http.Error(w, "Failed to marshal society details", http.StatusInternalServerError)
+		http.Error(w, "Failed to marshal event details", http.StatusInternalServerError)
 		return
 	}
 
@@ -169,3 +171,117 @@ func GetAllEvents(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
+func UpdateVisibility(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	eventId, ok := vars["eventId"]
+	var updatedEvent = &models.Event{}
+	utils.ParseBody(r, updatedEvent)
+	if !ok {
+		http.Error(w, fmt.Sprintf("Failed to get events: %v", ok), http.StatusBadRequest)
+		return
+	}
+	existingEvent, err := helpers.Helper_GetEventById(eventId)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			http.Error(w, fmt.Sprintf("Event not found: %s", err), http.StatusNotFound)
+		} else {
+			http.Error(w, fmt.Sprintf("Failed to get Event: %s", err), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	updatedEvent = &models.Event{
+		Soc_ID:         existingEvent.Soc_ID,
+		Event_ID:       existingEvent.Event_ID,
+		User_ID:        existingEvent.User_ID,
+		Soc_Email:      existingEvent.Soc_Email,
+		Title:          existingEvent.Title,
+		Description:    existingEvent.Description,
+		Date:           existingEvent.Date,
+		Additional:     existingEvent.Additional,
+		Parameters:     existingEvent.Parameters,
+		Team:           existingEvent.Team,
+		MaxTeamMembers: existingEvent.MaxTeamMembers,
+		MinTeamMembers: existingEvent.MinTeamMembers,
+		Visibility:     updatedEvent.Visibility,
+	}
+	err = helpers.Helper_UpdateEvent(updatedEvent)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to update event: %s", err), http.StatusInternalServerError)
+		return
+	}
+
+	response, err := json.Marshal(updatedEvent)
+	if err != nil {
+		http.Error(w, "Failed to marshal event details", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	//w.Write([]byte("Visibility set"))
+	w.Write(response)
+}
+
+func DeleteEvent(w http.ResponseWriter, r *http.Request) {
+	eventIdVal := r.Context().Value("eventId")
+	if eventIdVal == nil {
+		http.Error(w, "Event Id not found in context", http.StatusInternalServerError)
+		return
+	}
+	roleValue := r.Context().Value("role")
+	if roleValue == nil {
+		http.Error(w, "Role not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	eventId, ok := eventIdVal.(string)
+	if !ok {
+		http.Error(w, "Failed to retrieve Event Id from context", http.StatusInternalServerError)
+		return
+	}
+	role, ok := roleValue.(string)
+	if !ok {
+		http.Error(w, "Failed to retrieve role from context", http.StatusInternalServerError)
+		return
+	}
+
+	existingEvent, err := helpers.Helper_GetEventById(eventId)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			http.Error(w, fmt.Sprintf("Event not found: %s", err), http.StatusNotFound)
+		} else {
+			http.Error(w, fmt.Sprintf("Failed to get Event: %s", err), http.StatusInternalServerError)
+		}
+		return
+	}
+	if role == utils.AdminRole {
+		emailVal := r.Context().Value("email")
+		if emailVal == nil {
+			http.Error(w, "Email not found in context", http.StatusInternalServerError)
+			return
+		}
+
+		email, ok := emailVal.(string)
+		if !ok {
+			http.Error(w, "Failed to retrieve Email from context", http.StatusInternalServerError)
+			return
+		}
+
+		if existingEvent.Soc_Email != email {
+			http.Error(w, "You can only delete event in your own society", http.StatusForbidden)
+			return
+		}
+
+	}
+
+	err = helpers.Helper_DeleteEvent(eventId)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to delete event: %s", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Event Deleted Successfully"))
+}

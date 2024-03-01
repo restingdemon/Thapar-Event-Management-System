@@ -131,7 +131,27 @@ func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType strin
 		} else {
 			return ctx, fmt.Errorf("Invalid Role")
 		}
-
+	case strings.HasPrefix(r.URL.Path, "/event/delete/"):
+		vars := mux.Vars(r)
+		eventId, ok := vars["eventId"]
+		if !ok {
+			return ctx, fmt.Errorf("no Event Id provided")
+		}
+		if userType == utils.SuperAdminRole {
+			ctx = context.WithValue(ctx, "eventId", eventId)
+			ctx = context.WithValue(ctx, "role", utils.SuperAdminRole)
+			return ctx, nil
+		} else if userType == utils.AdminRole {
+			// if email != userEmail {
+			// 	return ctx, fmt.Errorf("you can only update your own details")
+			// }
+			ctx = context.WithValue(ctx, "eventId", eventId)
+			ctx = context.WithValue(ctx, "role", userType)
+			ctx = context.WithValue(ctx, "email", userEmail)
+			return ctx, nil
+		} else {
+			return ctx, fmt.Errorf("Invalid Role")
+		}
 	}
 
 	// Default to allowing access if the route is not explicitly handled

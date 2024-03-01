@@ -189,6 +189,7 @@ func Helper_UpdateEvent(event *models.Event) error {
 			Team:           event.Team,
 			MaxTeamMembers: event.MaxTeamMembers,
 			MinTeamMembers: event.MinTeamMembers,
+			Visibility:     event.Visibility,
 		},
 	}
 
@@ -289,4 +290,21 @@ func Helper_GetAllRegistrations(userType string, eventID, Soc_ID primitive.Objec
 	}
 
 	return registrations, nil
+}
+
+
+func Helper_DeleteEvent(Event_ID string) error {
+	collection := models.DB.Database("ThaparEventsDb").Collection("event")
+
+	objID, err := primitive.ObjectIDFromHex(Event_ID)
+	if err != nil {
+		return err
+	}
+
+	_, err = collection.DeleteOne(context.Background(), bson.M{"_id": objID})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
