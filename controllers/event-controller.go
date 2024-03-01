@@ -44,6 +44,7 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 	event.Soc_ID = soc_details.Soc_ID
 	event.User_ID = soc_details.User_ID
 	event.Soc_Email = soc_details.Email
+	event.Soc_Name = soc_details.Name
 	event.Date = time.Now().Unix()
 	event.Visibility = false
 
@@ -125,6 +126,8 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		Event_ID:       existingEvent.Event_ID,
 		User_ID:        existingEvent.User_ID,
 		Soc_Email:      existingEvent.Soc_Email,
+		Soc_Name:       existingEvent.Soc_Name,
+		Visibility:     existingEvent.Visibility,
 		Title:          updatedEvent.Title,
 		Description:    updatedEvent.Description,
 		Date:           updatedEvent.Date,
@@ -133,7 +136,12 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		Team:           updatedEvent.Team,
 		MaxTeamMembers: updatedEvent.MaxTeamMembers,
 		MinTeamMembers: updatedEvent.MinTeamMembers,
-		Visibility:     existingEvent.Visibility,
+		EventType:      updatedEvent.EventType,
+		EventMode:      updatedEvent.EventMode,
+		Hashtags:       updatedEvent.Hashtags,
+		SocialMedia:    updatedEvent.SocialMedia,
+		Prizes:         updatedEvent.Prizes,
+		Eligibility:    updatedEvent.Eligibility,
 	}
 	err = helpers.Helper_UpdateEvent(updatedEvent)
 	if err != nil {
@@ -154,7 +162,9 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAllEvents(w http.ResponseWriter, r *http.Request) {
-	events, err := helpers.Helper_GetAllEvents()
+	queryParams := r.URL.Query()
+	event_type := queryParams.Get("event_type")
+	events, err := helpers.Helper_GetAllEvents(event_type)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to get events: %v", err), http.StatusInternalServerError)
 		return
@@ -203,6 +213,13 @@ func UpdateVisibility(w http.ResponseWriter, r *http.Request) {
 		Team:           existingEvent.Team,
 		MaxTeamMembers: existingEvent.MaxTeamMembers,
 		MinTeamMembers: existingEvent.MinTeamMembers,
+		Soc_Name:       existingEvent.Soc_Name,
+		EventType:      existingEvent.EventType,
+		EventMode:      existingEvent.EventMode,
+		Hashtags:       existingEvent.Hashtags,
+		SocialMedia:    existingEvent.SocialMedia,
+		Prizes:         existingEvent.Prizes,
+		Eligibility:    existingEvent.Eligibility,
 		Visibility:     updatedEvent.Visibility,
 	}
 	err = helpers.Helper_UpdateEvent(updatedEvent)
@@ -211,16 +228,9 @@ func UpdateVisibility(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := json.Marshal(updatedEvent)
-	if err != nil {
-		http.Error(w, "Failed to marshal event details", http.StatusInternalServerError)
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	//w.Write([]byte("Visibility set"))
-	w.Write(response)
+	w.Write([]byte("Visibility set"))
 }
 
 func DeleteEvent(w http.ResponseWriter, r *http.Request) {

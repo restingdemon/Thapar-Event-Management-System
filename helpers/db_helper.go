@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// **********USER*************************
 func Helper_GetUserByID(userID primitive.ObjectID) (*models.User, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("users")
 
@@ -79,6 +80,7 @@ func Helper_UpdateUser(user *models.User) error {
 	return nil
 }
 
+// **********SOCIETY******************
 func Helper_CreateSociety(societydetails *models.Society) error {
 	collection := models.DB.Database("ThaparEventsDb").Collection("society")
 
@@ -144,6 +146,7 @@ func Helper_UpdateSoc(soc *models.Society) error {
 	return nil
 }
 
+// ***********EVENT***************
 func Helper_CreateEvent(event *models.Event) (*mongo.InsertOneResult, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("event")
 
@@ -172,6 +175,7 @@ func Helper_GetEventById(Event_ID string) (*models.Event, error) {
 
 	return event, nil
 }
+
 func Helper_UpdateEvent(event *models.Event) error {
 	collection := models.DB.Database("ThaparEventsDb").Collection("event")
 
@@ -190,6 +194,13 @@ func Helper_UpdateEvent(event *models.Event) error {
 			MaxTeamMembers: event.MaxTeamMembers,
 			MinTeamMembers: event.MinTeamMembers,
 			Visibility:     event.Visibility,
+			Soc_Name:       event.Soc_Name,
+			EventType:      event.EventType,
+			EventMode:      event.EventMode,
+			Hashtags:       event.Hashtags,
+			SocialMedia:    event.SocialMedia,
+			Prizes:         event.Prizes,
+			Eligibility:    event.Eligibility,
 		},
 	}
 
@@ -202,6 +213,43 @@ func Helper_UpdateEvent(event *models.Event) error {
 	return nil
 }
 
+func Helper_GetAllEvents(event_type string) ([]models.Event, error) {
+	collection := models.DB.Database("ThaparEventsDb").Collection("event")
+	filter := bson.M{"visibility": true}
+	if event_type != "" {
+		filter = bson.M{"visibility": true, "event_type": event_type}
+	}
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var events []models.Event
+	if err := cursor.All(context.TODO(), &events); err != nil {
+		return nil, fmt.Errorf("failed to decode events: %s", err)
+	}
+
+	return events, nil
+}
+
+func Helper_DeleteEvent(Event_ID string) error {
+	collection := models.DB.Database("ThaparEventsDb").Collection("event")
+
+	objID, err := primitive.ObjectIDFromHex(Event_ID)
+	if err != nil {
+		return err
+	}
+
+	_, err = collection.DeleteOne(context.Background(), bson.M{"_id": objID})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ******REGISTRATIONS************
 func Helper_CreateRegistration(registration *models.Registration) (*mongo.InsertOneResult, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("registrations")
 
@@ -243,23 +291,6 @@ func Helper_IsTeamMemberRegisteredForEvent(eventId primitive.ObjectID, teamEmail
 	return count > 0, nil
 }
 
-func Helper_GetAllEvents() ([]models.Event, error) {
-	collection := models.DB.Database("ThaparEventsDb").Collection("event")
-	filter := bson.M{"visibility": true}
-	cursor, err := collection.Find(context.TODO(), filter)
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(context.TODO())
-
-	var events []models.Event
-	if err := cursor.All(context.TODO(), &events); err != nil {
-		return nil, fmt.Errorf("failed to decode events: %s", err)
-	}
-
-	return events, nil
-}
-
 func Helper_GetAllRegistrations(userType string, eventID, Soc_ID primitive.ObjectID) ([]models.Registration, error) {
 	var registrations []models.Registration
 	collection := models.DB.Database("ThaparEventsDb").Collection("registrations")
@@ -290,21 +321,4 @@ func Helper_GetAllRegistrations(userType string, eventID, Soc_ID primitive.Objec
 	}
 
 	return registrations, nil
-}
-
-
-func Helper_DeleteEvent(Event_ID string) error {
-	collection := models.DB.Database("ThaparEventsDb").Collection("event")
-
-	objID, err := primitive.ObjectIDFromHex(Event_ID)
-	if err != nil {
-		return err
-	}
-
-	_, err = collection.DeleteOne(context.Background(), bson.M{"_id": objID})
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
