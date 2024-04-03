@@ -15,7 +15,7 @@ type User struct {
 	Phone string `json:"phone" bson:"phone"`
 	RollNo string `json:"rollno" bson:"rollno"`
 	Branch string `json:"branch" bson:"branch"`
-	Batch int32 `json:"batch" bson:"batch"`
+	Batch string `json:"batch" bson:"batch"`
 	Role string `json:"role" bson:"role"`
 	Image string `json:"image" bson:"image"`
 }
