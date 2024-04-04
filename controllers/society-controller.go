@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/restingdemon/thaparEvents/helpers"
 	"github.com/restingdemon/thaparEvents/models"
 	"github.com/restingdemon/thaparEvents/utils"
@@ -120,6 +121,35 @@ func GetSocietyDetails(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write(response)
 	}
+}
+
+func GetSocietyDetailsByID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	socID := vars["societyId"]
+	if socID == "" {
+		http.Error(w, "Society ID is required", http.StatusBadRequest)
+		return
+	}
+
+	society, err := helpers.Helper_GetSocietyById(socID)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			http.Error(w, "Society not found", http.StatusNotFound)
+		} else {
+			http.Error(w, fmt.Sprintf("Failed to get society: %s", err), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	response, err := json.Marshal(society)
+	if err != nil {
+		http.Error(w, "Failed to marshal society details", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
 }
 
 func UpdateSociety(w http.ResponseWriter, r *http.Request) {

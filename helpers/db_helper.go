@@ -105,6 +105,26 @@ func Helper_GetSocietyByEmail(email string) (*models.Society, error) {
 	return society, nil
 }
 
+func Helper_GetSocietyById(Soc_ID string) (*models.Society, error) {
+    collection := models.DB.Database("ThaparEventsDb").Collection("society")
+    objectId, err := primitive.ObjectIDFromHex(Soc_ID)
+    if err != nil {
+        return nil, fmt.Errorf("invalid Society ID format: %s", err)
+    }
+
+    filter := bson.M{"_id": objectId}
+    society := &models.Society{}
+    err = collection.FindOne(context.TODO(), filter).Decode(society)
+    if err != nil {
+        if err == mongo.ErrNoDocuments {
+            return nil, fmt.Errorf("Society not found")
+        }
+        return nil, err
+    }
+
+    return society, nil
+}
+
 func Helper_ListAllSocieties() ([]models.Society, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("society")
 

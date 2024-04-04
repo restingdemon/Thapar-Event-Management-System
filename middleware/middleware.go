@@ -12,7 +12,9 @@ import (
 var AuthenticationNotRequired map[string]bool = map[string]bool{
 	"/create":    true,
 	"/event/get": true,
+	"/event_by_id/get/":   true,
 	"/soc/get":   true,
+	"/soc_by_id/get/":   true,
 }
 
 var RoleMethods = map[string][]string{
@@ -34,6 +36,17 @@ func Authenticate(next http.Handler) http.Handler {
 		requestedPath := r.URL.Path
 		if AuthenticationNotRequired[requestedPath] {
 			// If the requested path is in AuthenticationNotRequired, skip authentication
+			next.ServeHTTP(w, r)
+			return
+		}
+		requiresAuth := true
+		for path := range AuthenticationNotRequired {
+			if strings.HasPrefix(requestedPath, path) {
+				requiresAuth = false
+				break
+			}
+		}
+		if !requiresAuth {
 			next.ServeHTTP(w, r)
 			return
 		}

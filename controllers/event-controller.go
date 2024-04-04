@@ -181,6 +181,34 @@ func GetAllEvents(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
+func GetEventById(w http.ResponseWriter, r *http.Request) {
+	eventId := mux.Vars(r)["eventId"]
+	if eventId == "" {
+		http.Error(w, "Event ID is required", http.StatusBadRequest)
+		return
+	}
+
+	event, err := helpers.Helper_GetEventById(eventId)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			http.Error(w, fmt.Sprintf("Event not found: %s", err), http.StatusNotFound)
+		} else {
+			http.Error(w, fmt.Sprintf("Failed to get Event: %s", err), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	response, err := json.Marshal(event)
+	if err != nil {
+		http.Error(w, "Failed to marshal event details", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+}
+
 func UpdateVisibility(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	eventId, ok := vars["eventId"]
