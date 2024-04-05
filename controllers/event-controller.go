@@ -163,8 +163,32 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 
 func GetAllEvents(w http.ResponseWriter, r *http.Request) {
 	queryParams := r.URL.Query()
-	event_type := queryParams.Get("event_type")
-	events, err := helpers.Helper_GetAllEvents(event_type)
+	eventType := queryParams.Get("event_type")
+	event_id := queryParams.Get("eventId")
+
+	if event_id != "" {
+		event, err := helpers.Helper_GetEventById(event_id)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				http.Error(w, fmt.Sprintf("Event not found: %s", err), http.StatusNotFound)
+			} else {
+				http.Error(w, fmt.Sprintf("Failed to get event: %s", err), http.StatusInternalServerError)
+			}
+			return
+		}
+
+		response, err := json.Marshal(event)
+		if err != nil {
+			http.Error(w, "Failed to marshal event details", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(response)
+		return
+	}
+	events, err := helpers.Helper_GetAllEvents(eventType)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to get events: %v", err), http.StatusInternalServerError)
 		return
