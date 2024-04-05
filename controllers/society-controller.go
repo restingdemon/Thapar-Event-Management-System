@@ -101,8 +101,7 @@ func GetSocietyDetails(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(response)
-	}
-	if society_id != "" {
+	}else if society_id != "" {
 		society, err := helpers.Helper_GetSocietyById(society_id)
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
