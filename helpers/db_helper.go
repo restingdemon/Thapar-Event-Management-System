@@ -122,6 +122,25 @@ func Helper_ListAllSocieties() ([]models.Society, error) {
 	return societies, nil
 }
 
+func Helper_GetSocietyById(societyId string) (*models.Society, error) {
+    collection := models.DB.Database("ThaparEventsDb").Collection("society")
+    objID, err := primitive.ObjectIDFromHex(societyId)
+
+    if err != nil {
+        return nil, err
+    }
+
+    filter := bson.M{"_id": objID}
+    society := &models.Society{}
+	
+    err = collection.FindOne(context.Background(), filter).Decode(society)
+    if err != nil {
+        return nil, err
+    }
+
+    return society, nil
+}
+
 func Helper_UpdateSoc(soc *models.Society) error {
 	collection := models.DB.Database("ThaparEventsDb").Collection("society")
 
