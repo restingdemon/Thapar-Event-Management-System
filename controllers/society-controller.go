@@ -82,24 +82,8 @@ func RegisterSociety(w http.ResponseWriter, r *http.Request) {
 func GetSocietyDetails(w http.ResponseWriter, r *http.Request) {
 	queryParams := r.URL.Query()
 	email := queryParams.Get("email")
-
-	if email == "" {
-		societies, err := helpers.Helper_ListAllSocieties()
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to list all societies: %s", err), http.StatusInternalServerError)
-			return
-		}
-
-		response, err := json.Marshal(societies)
-		if err != nil {
-			http.Error(w, "Failed to marshal societies", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(response)
-	} else {
+	society_id := queryParams.Get("societyId")
+	if email != "" {
 		society, err := helpers.Helper_GetSocietyByEmail(email)
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
@@ -109,10 +93,43 @@ func GetSocietyDetails(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
-
 		response, err := json.Marshal(society)
 		if err != nil {
 			http.Error(w, "Failed to marshal society details", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(response)
+	}
+	if society_id != "" {
+		society, err := helpers.Helper_GetSocietyById(society_id)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				http.Error(w, "Society not found", http.StatusNotFound)
+			} else {
+				http.Error(w, fmt.Sprintf("Failed to get society: %s", err), http.StatusInternalServerError)
+			}
+			return
+		}
+		response, err := json.Marshal(society)
+		if err != nil {
+			http.Error(w, "Failed to marshal society details", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(response)
+	} else {
+		societies, err := helpers.Helper_ListAllSocieties()
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to list all societies: %s", err), http.StatusInternalServerError)
+			return
+		}
+
+		response, err := json.Marshal(societies)
+		if err != nil {
+			http.Error(w, "Failed to marshal societies", http.StatusInternalServerError)
 			return
 		}
 
