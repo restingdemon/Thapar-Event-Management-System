@@ -296,18 +296,22 @@ func Helper_GetRegistrationByEmailAndEvent(email string, eventID primitive.Objec
 	return registration, nil
 }
 
-func Helper_IsTeamMemberRegisteredForEvent(eventId primitive.ObjectID, teamEmail string) (bool, error) {
+func Helper_IsTeamMemberRegisteredForEvent(eventId primitive.ObjectID, teamEmail string) (*models.Registration, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("registrations")
 	filter := bson.M{
 		"_eid":        eventId,
 		"team_emails": bson.M{"$in": []string{teamEmail}},
 	}
-
-	count, err := collection.CountDocuments(context.TODO(), filter)
+	registration := &models.Registration{}
+	err := collection.FindOne(context.TODO(), filter).Decode(registration)
 	if err != nil {
-		return false, err
+		if err == mongo.ErrNoDocuments {
+			return nil, nil // Return nil if no registration found
+		}
+		return nil, err
 	}
-	return count > 0, nil
+
+	return registration, nil
 }
 
 func Helper_GetAllRegistrations(userType string, eventID, Soc_ID primitive.ObjectID) ([]models.Registration, error) {

@@ -102,6 +102,10 @@ func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType strin
 		} else {
 			return ctx, fmt.Errorf("Invalid Role")
 		}
+	case strings.HasPrefix(r.URL.Path, "/event/register/"):
+		ctx = context.WithValue(ctx, "email", userEmail)
+		return ctx,nil
+		
 	case strings.HasPrefix(r.URL.Path, "/event/get/registrations"):
 		vars := mux.Vars(r)
 		eventId, ok := vars["eventId"]
@@ -131,6 +135,17 @@ func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType strin
 		} else {
 			return ctx, fmt.Errorf("Invalid Role")
 		}
+
+	case strings.HasPrefix(r.URL.Path, "/event/check/registrations/"):
+		vars := mux.Vars(r)
+		eventId, ok := vars["eventId"]
+		if !ok {
+			return ctx, fmt.Errorf("no Event Id provided")
+		}
+		ctx = context.WithValue(ctx, "eventId", eventId)
+		ctx = context.WithValue(ctx, "email", userEmail)
+		return ctx, nil
+
 	case strings.HasPrefix(r.URL.Path, "/event/delete/"):
 		vars := mux.Vars(r)
 		eventId, ok := vars["eventId"]
