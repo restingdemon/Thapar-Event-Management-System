@@ -18,6 +18,7 @@ import (
 //register participant ----> for user only
 
 func CreateRegistration(w http.ResponseWriter, r *http.Request) {
+	//In this function if registered as a team then jo bnda register krra h uska email email wali field + team email dono me hona chie
 	var regisDetails = &models.Registration{}
 	utils.ParseBody(r, regisDetails)
 
@@ -182,7 +183,7 @@ func CheckRegistration(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusBadRequest)
+	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
 }
 

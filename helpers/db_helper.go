@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // **********USER*************************
@@ -345,3 +346,40 @@ func Helper_GetAllRegistrations(userType string, eventID, Soc_ID primitive.Objec
 
 	return registrations, nil
 }
+
+
+func Helper_GetEventsByUserEmail(email string) ([]primitive.ObjectID, error) {
+    filter := bson.M{
+        "$or": []bson.M{
+            {"email": email},                                // Match solo registrations
+            {"team_emails": bson.M{"$in": []string{email}}}, // Match team registrations
+        },
+    }
+
+    projection := bson.M{"_eid": 1}
+
+    collection := models.DB.Database("ThaparEventsDb").Collection("registrations")
+    cursor, err := collection.Find(context.Background(), filter, options.Find().SetProjection(projection))
+    if err != nil {
+        return nil, fmt.Errorf("failed to find registrations: %v", err)
+    }
+    defer cursor.Close(context.Background())
+
+    var eventIDs []primitive.ObjectID
+    for cursor.Next(context.Background()) {
+        var result struct {
+            EventID primitive.ObjectID `bson:"_eid"`
+        }
+        if err := cursor.Decode(&result); err != nil {
+            return nil, fmt.Errorf("failed to decode registration: %v", err)
+        }
+        eventIDs = append(eventIDs, result.EventID)
+    }
+
+    if err := cursor.Err(); err != nil {
+        return nil, fmt.Errorf("cursor error: %v", err)
+    }
+
+    return eventIDs, nil
+}
+
