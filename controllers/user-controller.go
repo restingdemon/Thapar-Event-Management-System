@@ -25,6 +25,7 @@ type GoogleUser struct {
 	YearOfAdmission string             `json:"year_of_admission" bson:"year_of_admission"`
 	Role            string             `json:"role" bson:"role"`
 	Token           string             `json:"token"`
+	Image           string             `json:"image" bson:"image"`
 }
 
 func Create(w http.ResponseWriter, r *http.Request) {
@@ -125,7 +126,8 @@ func createUser(googleUser *GoogleUser) error {
 	user := models.User{
 		Email: googleUser.Email,
 		Name:  googleUser.Name,
-		Role:  "user",
+		Role:  utils.UserRole,
+		Image: googleUser.Image,
 	}
 
 	_, err := collection.InsertOne(context.Background(), user)
