@@ -60,6 +60,13 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to find user after create: %s", err), http.StatusInternalServerError)
 		}
+	} else {
+		existingUser.Image = user.Image
+		err = helpers.Helper_UpdateUser(existingUser)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to update user: %s", err), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Generate JWT tokens for the user
@@ -251,47 +258,46 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetUserRegistration(w http.ResponseWriter, r *http.Request) {
-    email, ok := r.Context().Value("email").(string)
-    if !ok {
-        http.Error(w, "failed to retrieve email from header", http.StatusInternalServerError)
-        return
-    }
+	email, ok := r.Context().Value("email").(string)
+	if !ok {
+		http.Error(w, "failed to retrieve email from header", http.StatusInternalServerError)
+		return
+	}
 
-    // Get event IDs for the provided email
-    eventIDs, err := helpers.Helper_GetEventsByUserEmail(email)
-    if err != nil {
-        if errors.Is(err, mongo.ErrNoDocuments) {
-            // If no documents found, return an empty response with status OK
-            w.Header().Set("Content-Type", "application/json")
-            w.WriteHeader(http.StatusOK)
-            w.Write([]byte("[]"))
-            return
-        }
-        http.Error(w, fmt.Sprintf("Failed to get event IDs for user: %s", err), http.StatusInternalServerError)
-        return
-    }
+	// Get event IDs for the provided email
+	eventIDs, err := helpers.Helper_GetEventsByUserEmail(email)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			// If no documents found, return an empty response with status OK
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("[]"))
+			return
+		}
+		http.Error(w, fmt.Sprintf("Failed to get event IDs for user: %s", err), http.StatusInternalServerError)
+		return
+	}
 
-    // Fetch full event details for each event ID
-    var events []models.Event
-    for _, eventID := range eventIDs {
-        event, err := helpers.Helper_GetEventById(eventID.Hex())
-        if err != nil {
-            http.Error(w, fmt.Sprintf("Failed to get event details: %s", err), http.StatusInternalServerError)
-            return
-        }
-        events = append(events, *event)
-    }
+	// Fetch full event details for each event ID
+	var events []models.Event
+	for _, eventID := range eventIDs {
+		event, err := helpers.Helper_GetEventById(eventID.Hex())
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to get event details: %s", err), http.StatusInternalServerError)
+			return
+		}
+		events = append(events, *event)
+	}
 
-    // Marshal response JSON
-    jsonResponse, err := json.Marshal(events)
-    if err != nil {
-        http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
-        return
-    }
+	// Marshal response JSON
+	jsonResponse, err := json.Marshal(events)
+	if err != nil {
+		http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
+		return
+	}
 
-    // Write response
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusOK)
-    w.Write(jsonResponse)
+	// Write response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
 }
-
