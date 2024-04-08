@@ -124,22 +124,22 @@ func Helper_ListAllSocieties() ([]models.Society, error) {
 }
 
 func Helper_GetSocietyById(societyId string) (*models.Society, error) {
-    collection := models.DB.Database("ThaparEventsDb").Collection("society")
-    objID, err := primitive.ObjectIDFromHex(societyId)
+	collection := models.DB.Database("ThaparEventsDb").Collection("society")
+	objID, err := primitive.ObjectIDFromHex(societyId)
 
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 
-    filter := bson.M{"_id": objID}
-    society := &models.Society{}
-	
-    err = collection.FindOne(context.Background(), filter).Decode(society)
-    if err != nil {
-        return nil, err
-    }
+	filter := bson.M{"_id": objID}
+	society := &models.Society{}
 
-    return society, nil
+	err = collection.FindOne(context.Background(), filter).Decode(society)
+	if err != nil {
+		return nil, err
+	}
+
+	return society, nil
 }
 
 func Helper_UpdateSoc(soc *models.Society) error {
@@ -221,6 +221,7 @@ func Helper_UpdateEvent(event *models.Event) error {
 			SocialMedia:    event.SocialMedia,
 			Prizes:         event.Prizes,
 			Eligibility:    event.Eligibility,
+			PhotoGallery:   event.PhotoGallery,
 		},
 	}
 
@@ -347,39 +348,37 @@ func Helper_GetAllRegistrations(userType string, eventID, Soc_ID primitive.Objec
 	return registrations, nil
 }
 
-
 func Helper_GetEventsByUserEmail(email string) ([]primitive.ObjectID, error) {
-    filter := bson.M{
-        "$or": []bson.M{
-            {"email": email},                                // Match solo registrations
-            {"team_emails": bson.M{"$in": []string{email}}}, // Match team registrations
-        },
-    }
+	filter := bson.M{
+		"$or": []bson.M{
+			{"email": email}, // Match solo registrations
+			{"team_emails": bson.M{"$in": []string{email}}}, // Match team registrations
+		},
+	}
 
-    projection := bson.M{"_eid": 1}
+	projection := bson.M{"_eid": 1}
 
-    collection := models.DB.Database("ThaparEventsDb").Collection("registrations")
-    cursor, err := collection.Find(context.Background(), filter, options.Find().SetProjection(projection))
-    if err != nil {
-        return nil, fmt.Errorf("failed to find registrations: %v", err)
-    }
-    defer cursor.Close(context.Background())
+	collection := models.DB.Database("ThaparEventsDb").Collection("registrations")
+	cursor, err := collection.Find(context.Background(), filter, options.Find().SetProjection(projection))
+	if err != nil {
+		return nil, fmt.Errorf("failed to find registrations: %v", err)
+	}
+	defer cursor.Close(context.Background())
 
-    var eventIDs []primitive.ObjectID
-    for cursor.Next(context.Background()) {
-        var result struct {
-            EventID primitive.ObjectID `bson:"_eid"`
-        }
-        if err := cursor.Decode(&result); err != nil {
-            return nil, fmt.Errorf("failed to decode registration: %v", err)
-        }
-        eventIDs = append(eventIDs, result.EventID)
-    }
+	var eventIDs []primitive.ObjectID
+	for cursor.Next(context.Background()) {
+		var result struct {
+			EventID primitive.ObjectID `bson:"_eid"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("failed to decode registration: %v", err)
+		}
+		eventIDs = append(eventIDs, result.EventID)
+	}
 
-    if err := cursor.Err(); err != nil {
-        return nil, fmt.Errorf("cursor error: %v", err)
-    }
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("cursor error: %v", err)
+	}
 
-    return eventIDs, nil
+	return eventIDs, nil
 }
-

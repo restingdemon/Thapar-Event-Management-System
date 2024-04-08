@@ -128,6 +128,7 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		Soc_Email:      existingEvent.Soc_Email,
 		Soc_Name:       existingEvent.Soc_Name,
 		Visibility:     existingEvent.Visibility,
+		PhotoGallery:   existingEvent.PhotoGallery,
 		Title:          updatedEvent.Title,
 		Description:    updatedEvent.Description,
 		Date:           updatedEvent.Date,
@@ -244,6 +245,7 @@ func UpdateVisibility(w http.ResponseWriter, r *http.Request) {
 		SocialMedia:    existingEvent.SocialMedia,
 		Prizes:         existingEvent.Prizes,
 		Eligibility:    existingEvent.Eligibility,
+		PhotoGallery:   existingEvent.PhotoGallery,
 		Visibility:     updatedEvent.Visibility,
 	}
 	err = helpers.Helper_UpdateEvent(updatedEvent)
@@ -318,4 +320,145 @@ func DeleteEvent(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Event Deleted Successfully"))
+}
+
+func UploadPhotos(w http.ResponseWriter, r *http.Request) {
+	// Parse multipart form data
+	err := r.ParseMultipartForm(50 << 20)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
+		return
+	}
+
+	// Get event ID from request params
+	vars := mux.Vars(r)
+	eventID := vars["eventId"]
+
+	// Retrieve event by ID to ensure it exists
+	event, err := helpers.Helper_GetEventById(eventID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Event not found: %s", err), http.StatusNotFound)
+		return
+	}
+	emailVal := r.Context().Value("email")
+	if emailVal == nil {
+		http.Error(w, "Email not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	email, ok := emailVal.(string)
+	if !ok {
+		http.Error(w, "Failed to retrieve Email from context", http.StatusInternalServerError)
+		return
+	}
+
+	if event.Soc_Email != email {
+		http.Error(w, "You can only add photos in your own society event", http.StatusForbidden)
+		return
+	}
+
+	files := r.MultipartForm.File["photos"]
+	var photoURLs []string
+
+	// Loop through each file and upload to Cloudinary
+	for _, fileHeader := range files {
+
+		// Check file size
+		if fileHeader.Size > (10 * 1024 * 1024) { // 10 MB in bytes
+			w.Header().Set("Content-Type", "application/json")
+			http.Error(w, "File size exceeds the limit of 10 MB", http.StatusBadRequest)
+			return
+		}
+
+		file, err := fileHeader.Open()
+		if err != nil {
+			http.Error(w, "Failed to open file", http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+
+		// Upload file to Cloudinary
+		uploadResult, err := helpers.UploadToCloudinary(r.Context(), file)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to upload photo: %s", err), http.StatusInternalServerError)
+			return
+		}
+
+		// Append the uploaded photo URL to the photoURLs slice
+		photoURLs = append(photoURLs, uploadResult.SecureURL)
+	}
+
+	// Append uploaded photo URLs to the event's photo gallery
+	event.PhotoGallery = append(event.PhotoGallery, photoURLs...)
+
+	// Update event in the database with the new photo gallery
+	err = helpers.Helper_UpdateEvent(event)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to update event: %s", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with success message
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte("Photos uploaded successfully"))
+}
+
+func DeletePhoto(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	eventID := vars["eventId"]
+	queryParams := r.URL.Query()
+	photoURL := queryParams.Get("photoURL")
+
+	event, err := helpers.Helper_GetEventById(eventID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Event not found: %s", err), http.StatusNotFound)
+		return
+	}
+	emailVal := r.Context().Value("email")
+	if emailVal == nil {
+		http.Error(w, "Email not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	email, ok := emailVal.(string)
+	if !ok {
+		http.Error(w, "Failed to retrieve Email from context", http.StatusInternalServerError)
+		return
+	}
+
+	if event.Soc_Email != email {
+		http.Error(w, "You can only delete photos in your own society event", http.StatusForbidden)
+		return
+	}
+
+	// Check if photo URL exists in the event's photo gallery
+	var photoIndex = -1
+	for i, url := range event.PhotoGallery {
+		if url == photoURL {
+			photoIndex = i
+			break
+		}
+	}
+
+	if photoIndex == -1 {
+		http.Error(w, "Photo not found in the photo gallery", http.StatusNotFound)
+		return
+	}
+
+	// Remove the photo URL from the event's photo gallery
+	event.PhotoGallery = append(event.PhotoGallery[:photoIndex], event.PhotoGallery[photoIndex+1:]...)
+
+	// Update event in the database with the modified photo gallery
+	err = helpers.Helper_UpdateEvent(event)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to update event: %s", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with success message
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Photo deleted successfully"))
 }

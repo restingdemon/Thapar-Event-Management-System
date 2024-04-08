@@ -11,5 +11,6 @@ var RegisterEventRoutes = func(router *mux.Router) {
 	router.HandleFunc("/event/get", controller.GetAllEvents).Methods("GET")
 	router.HandleFunc("/event/visibility/{eventId}", controller.UpdateVisibility).Methods("POST")
 	router.HandleFunc("/event/delete/{eventId}", controller.DeleteEvent).Methods("DELETE")
-
+	router.HandleFunc("/event/upload/{eventId}", controller.UploadPhotos).Methods("POST")
+	router.HandleFunc("/event/photo/delete/{eventId}", controller.DeletePhoto).Methods("DELETE")
 }

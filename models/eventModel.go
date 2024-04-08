@@ -25,4 +25,5 @@ type Event struct {
 	SocialMedia    map[string]interface{} `json:"social_media,omitempty" bson:"social_media,omitempty"`
 	Prizes         map[string]interface{} `json:"prizes" bson:"prizes"`
 	Eligibility    string                 `json:"eligibility" bson:"eligibility"`
+	PhotoGallery   []string               `json:"photo_gallery,omitempty" bson:"photo_gallery,omitempty"`
 }

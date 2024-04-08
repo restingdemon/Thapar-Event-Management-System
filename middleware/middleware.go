@@ -28,6 +28,8 @@ var RoleMethods = map[string][]string{
 	"/event/check/registrations/": {utils.UserRole},
 	"/event/visibility/":          {utils.SuperAdminRole},
 	"/event/delete/":              {utils.AdminRole, utils.SuperAdminRole},
+	"/event/upload/":              {utils.AdminRole},
+	"/event/photo/delete":         {utils.AdminRole},
 }
 
 // Authenticate is a middleware function that performs authentication

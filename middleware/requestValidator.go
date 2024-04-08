@@ -171,6 +171,14 @@ func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType strin
 		} else {
 			return ctx, fmt.Errorf("Invalid Role")
 		}
+	case strings.HasPrefix(r.URL.Path, "/event/upload/"):
+		ctx = context.WithValue(ctx, "role", userType)
+		ctx = context.WithValue(ctx, "email", userEmail)
+		return ctx, nil
+	case strings.HasPrefix(r.URL.Path, "/event/photo/delete"):
+		ctx = context.WithValue(ctx, "role", userType)
+		ctx = context.WithValue(ctx, "email", userEmail)
+		return ctx, nil
 	}
 
 	// Default to allowing access if the route is not explicitly handled
