@@ -45,7 +45,7 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 	event.User_ID = soc_details.User_ID
 	event.Soc_Email = soc_details.Email
 	event.Soc_Name = soc_details.Name
-	event.Date = time.Now().Unix()
+	event.CreatedAt = time.Now().Unix()
 	event.Visibility = false
 
 	result, err := helpers.Helper_CreateEvent(event)
@@ -129,9 +129,11 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		Soc_Name:       existingEvent.Soc_Name,
 		Visibility:     existingEvent.Visibility,
 		PhotoGallery:   existingEvent.PhotoGallery,
+		CreatedAt:      time.Now().Unix(),
 		Title:          updatedEvent.Title,
 		Description:    updatedEvent.Description,
-		Date:           updatedEvent.Date,
+		StartDate:      updatedEvent.StartDate,
+		EndDate:        updatedEvent.EndDate,
 		Additional:     updatedEvent.Additional,
 		Parameters:     updatedEvent.Parameters,
 		Team:           updatedEvent.Team,
@@ -232,7 +234,9 @@ func UpdateVisibility(w http.ResponseWriter, r *http.Request) {
 		Soc_Email:      existingEvent.Soc_Email,
 		Title:          existingEvent.Title,
 		Description:    existingEvent.Description,
-		Date:           existingEvent.Date,
+		CreatedAt:      time.Now().Unix(),
+		StartDate:      existingEvent.StartDate,
+		EndDate:        existingEvent.EndDate,
 		Additional:     existingEvent.Additional,
 		Parameters:     existingEvent.Parameters,
 		Team:           existingEvent.Team,

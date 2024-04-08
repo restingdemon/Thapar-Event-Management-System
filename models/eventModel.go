@@ -12,7 +12,9 @@ type Event struct {
 	Soc_Name       string                 `json:"soc_name" bson:"soc_name"`
 	Title          string                 `json:"title" bson:"title"`
 	Description    string                 `json:"description" bson:"description"`
-	Date           int64                  `json:"date" bson:"date"`
+	CreatedAt      int64                  `json:"createdAt" bson:"createdAt"`
+	StartDate      int64                  `json:"start_date" bson:"start_date"`
+	EndDate        int64                  `json:"end_date" bson:"end_date"`
 	Visibility     bool                   `json:"visibility" bson:"visibility"`
 	Team           bool                   `json:"team" bson:"team"`
 	MaxTeamMembers int                    `json:"max_team_members,omitempty" bson:"max_team_members,omitempty"`
