@@ -101,7 +101,7 @@ func GetSocietyDetails(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(response)
-	}else if society_id != "" {
+	} else if society_id != "" {
 		society, err := helpers.Helper_GetSocietyById(society_id)
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
@@ -198,4 +198,29 @@ func UpdateSociety(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write(response)
 	}
+}
+
+func GetSocEvents(w http.ResponseWriter, r *http.Request) {
+	queryParams := r.URL.Query()
+	soc_email := queryParams.Get("soc_email")
+
+	events, err := helpers.Helper_GetSocEvents(soc_email)
+
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			http.Error(w, fmt.Sprintln("Not events found"), http.StatusNotFound)
+		} else {
+			http.Error(w, fmt.Sprintf("Failed to get events: %s", err), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	response, err := json.Marshal(events)
+	if err != nil {
+		http.Error(w, fmt.Sprintln("Unable to marshal events into json"), http.StatusInternalServerError)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+
 }
