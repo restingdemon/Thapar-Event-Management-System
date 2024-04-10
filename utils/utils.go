@@ -23,7 +23,7 @@ func ParseBody(r *http.Request, x interface{}) {
 
 func IsloginValid(email string, accessToken string) bool {
 
-	if accessToken != "" && accessToken == "ajak" {
+	if accessToken != "" && accessToken == "worldwide_ajak" {
 		return true
 	}
 
