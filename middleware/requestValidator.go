@@ -69,22 +69,22 @@ func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType strin
 		} else {
 			return ctx, fmt.Errorf("Invalid Role")
 		}
-	case strings.HasPrefix(r.URL.Path, "/event/create"):
-		vars := mux.Vars(r)
-		email, ok := vars["email"]
-		if !ok {
-			return ctx, fmt.Errorf("no email provided")
-		}
-		if userType == "superadmin" {
-			ctx = context.WithValue(ctx, "email", email)
-			return ctx, nil
-		}
-		if email != userEmail {
-			return ctx, fmt.Errorf("you can only create event in your own society")
-		}
+	// case strings.HasPrefix(r.URL.Path, "/event/create"):
+	// 	vars := mux.Vars(r)
+	// 	email, ok := vars["email"]
+	// 	if !ok {
+	// 		return ctx, fmt.Errorf("no email provided")
+	// 	}
+	// 	if userType == "superadmin" {
+	// 		ctx = context.WithValue(ctx, "email", email)
+	// 		return ctx, nil
+	// 	}
+	// 	if email != userEmail {
+	// 		return ctx, fmt.Errorf("you can only create event in your own society")
+	// 	}
 
-		ctx = context.WithValue(ctx, "email", email)
-		return ctx, nil
+	// 	ctx = context.WithValue(ctx, "email", email)
+	// 	return ctx, nil
 	case strings.HasPrefix(r.URL.Path, "/event/update"):
 		vars := mux.Vars(r)
 		eventId, ok := vars["eventId"]

@@ -10,19 +10,19 @@ import (
 )
 
 var AuthenticationNotRequired map[string]bool = map[string]bool{
-	"/create":    true,
-	"/event/get": true,
-	"/soc/get":   true,
-	"/soc/get/events":true,
+	"/create":         true,
+	"/event/get":      true,
+	"/soc/get":        true,
+	"/soc/get/events": true,
 }
 
 var RoleMethods = map[string][]string{
-	"/users/get":                  {utils.UserRole, utils.AdminRole, utils.SuperAdminRole},
-	"/users/update/":              {utils.AdminRole, utils.UserRole, utils.SuperAdminRole},
-	"/users/get/registrations":    {utils.UserRole},
-	"/soc/register":               {utils.SuperAdminRole},
-	"/soc/update/":                {utils.AdminRole, utils.SuperAdminRole},
-	"/event/create":               {utils.AdminRole, utils.SuperAdminRole},
+	"/users/get":               {utils.UserRole, utils.AdminRole, utils.SuperAdminRole},
+	"/users/update/":           {utils.AdminRole, utils.UserRole, utils.SuperAdminRole},
+	"/users/get/registrations": {utils.UserRole},
+	"/soc/register":            {utils.SuperAdminRole},
+	"/soc/update/":             {utils.AdminRole, utils.SuperAdminRole},
+	//"/event/create":               {utils.AdminRole, utils.SuperAdminRole},
 	"/event/update/":              {utils.AdminRole, utils.SuperAdminRole},
 	"/event/register/":            {utils.UserRole},
 	"/event/get/registrations/":   {utils.AdminRole, utils.SuperAdminRole},
@@ -37,7 +37,25 @@ var RoleMethods = map[string][]string{
 func Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestedPath := r.URL.Path
-		if AuthenticationNotRequired[requestedPath] {
+		if AuthenticationNotRequired[requestedPath] || strings.HasPrefix(requestedPath, "/event/create") {
+
+			if strings.HasPrefix(requestedPath, "/event/create") {
+				apiKey := r.Header.Get("X-API-Key")
+				if apiKey == "" {
+					w.Header().Set("Access-Control-Allow-Origin", "*")
+					w.WriteHeader(http.StatusUnauthorized)
+					w.Write([]byte("No API key provided"))
+					return
+				} else if apiKey == "integration" {
+					next.ServeHTTP(w, r)
+					return
+				} else {
+					w.Header().Set("Access-Control-Allow-Origin", "*")
+					w.WriteHeader(http.StatusUnauthorized)
+					w.Write([]byte("Not Authorized"))
+					return
+				}
+			}
 			// If the requested path is in AuthenticationNotRequired, skip authentication
 			next.ServeHTTP(w, r)
 			return

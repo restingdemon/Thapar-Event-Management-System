@@ -241,6 +241,7 @@ func Helper_UpdateEvent(event *models.Event) error {
 			Prizes:         event.Prizes,
 			Eligibility:    event.Eligibility,
 			PhotoGallery:   event.PhotoGallery,
+			Venue:          event.Venue,
 		},
 	}
 

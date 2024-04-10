@@ -19,15 +19,10 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 	var event = &models.Event{}
 	utils.ParseBody(r, event)
 
-	emailValue := r.Context().Value("email")
-	if emailValue == nil {
-		http.Error(w, "Email not found in context", http.StatusInternalServerError)
-		return
-	}
-
-	email, ok := emailValue.(string)
+	vars := mux.Vars(r)
+	email, ok := vars["email"]
 	if !ok {
-		http.Error(w, "Failed to retrieve email from context", http.StatusInternalServerError)
+		http.Error(w, "Failed to retrieve email from url or no email in url", http.StatusInternalServerError)
 		return
 	}
 
@@ -46,7 +41,7 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 	event.Soc_Email = soc_details.Email
 	event.Soc_Name = soc_details.Name
 	event.CreatedAt = time.Now().Unix()
-	event.Visibility = false
+	event.Visibility = true
 
 	result, err := helpers.Helper_CreateEvent(event)
 	if err != nil {
@@ -145,6 +140,7 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		SocialMedia:    updatedEvent.SocialMedia,
 		Prizes:         updatedEvent.Prizes,
 		Eligibility:    updatedEvent.Eligibility,
+		Venue:          updatedEvent.Venue,
 	}
 	err = helpers.Helper_UpdateEvent(updatedEvent)
 	if err != nil {
