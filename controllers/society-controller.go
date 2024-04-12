@@ -181,6 +181,7 @@ func UpdateSociety(w http.ResponseWriter, r *http.Request) {
 			Role:            existingSoc.Role,
 			YearOfFormation: updatedSociety.YearOfFormation,
 			About:           updatedSociety.About,
+			Image:           existingSoc.Image,
 		}
 		err = helpers.Helper_UpdateSoc(updatedSociety)
 		if err != nil {
@@ -244,7 +245,7 @@ func GetSocDashboard(w http.ResponseWriter, r *http.Request) {
 	type Response struct {
 		TotalEvents    int64 `json:"totalEvents"`
 		UpcomingEvents int64 `json:"upcomingEvents"`
-		TeamMembers    int64  `json:"teamMembers"`
+		TeamMembers    int64 `json:"teamMembers"`
 	}
 
 	totalEvents, upcomingEvents, ok := helpers.Helper_GetSocDashboard(email)
@@ -253,11 +254,10 @@ func GetSocDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := Response{
-        TotalEvents:    totalEvents,
-        UpcomingEvents: upcomingEvents,
-        TeamMembers:    0, 
-    }
-
+		TotalEvents:    totalEvents,
+		UpcomingEvents: upcomingEvents,
+		TeamMembers:    0,
+	}
 
 	output, err1 := json.Marshal(resp)
 	if err1 != nil {
