@@ -224,3 +224,47 @@ func GetSocEvents(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 
 }
+
+func GetSocDashboard(w http.ResponseWriter, r *http.Request) {
+	email := r.Context().Value("email").(string)
+	if email == "" {
+		http.Error(w, "Email not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	_, err := helpers.Helper_GetSocietyByEmail(email)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			http.Error(w, fmt.Sprintf("Soc not found"), http.StatusNotFound)
+		} else {
+			http.Error(w, fmt.Sprintf("Failed to get Soc: %s", err), http.StatusInternalServerError)
+		}
+		return
+	}
+	type Response struct {
+		TotalEvents    int64 `json:"totalEvents"`
+		UpcomingEvents int64 `json:"upcomingEvents"`
+		TeamMembers    int64  `json:"teamMembers"`
+	}
+
+	totalEvents, upcomingEvents, ok := helpers.Helper_GetSocDashboard(email)
+	if ok != nil {
+		http.Error(w, fmt.Sprintf("Failed to get dashboard"), http.StatusInternalServerError)
+		return
+	}
+	resp := Response{
+        TotalEvents:    totalEvents,
+        UpcomingEvents: upcomingEvents,
+        TeamMembers:    0, 
+    }
+
+
+	output, err1 := json.Marshal(resp)
+	if err1 != nil {
+		http.Error(w, fmt.Sprintf("Failed to marshal response"), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(output)
+}

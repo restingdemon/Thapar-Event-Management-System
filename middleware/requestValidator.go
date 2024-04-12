@@ -179,8 +179,28 @@ func CheckHTTPAuthorization(r *http.Request, ctx context.Context, userType strin
 		ctx = context.WithValue(ctx, "role", userType)
 		ctx = context.WithValue(ctx, "email", userEmail)
 		return ctx, nil
-	}
 
+	case strings.HasPrefix(r.URL.Path, "/soc/dashboard"):
+		vars := mux.Vars(r)
+		email, ok := vars["email"]
+		if !ok {
+			return ctx, fmt.Errorf("no email provided")
+		}
+
+		if userType == utils.SuperAdminRole {
+			ctx = context.WithValue(ctx, "email", email)
+			return ctx, nil
+		} else if userType == utils.AdminRole {
+			if email != userEmail {
+				return ctx, fmt.Errorf("can view own society dashboard only")
+			}
+			ctx = context.WithValue(ctx, "email", userEmail)
+			return ctx, nil
+		} else {
+			return ctx, fmt.Errorf("not authorised to view society dashboard")
+		}
+
+	}
 	// Default to allowing access if the route is not explicitly handled
 	return ctx, nil
 }

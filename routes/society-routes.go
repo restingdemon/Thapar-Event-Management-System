@@ -10,4 +10,5 @@ var RegisterSocRoutes = func(router *mux.Router) {
 	router.HandleFunc("/soc/get", controller.GetSocietyDetails).Methods("GET")
 	router.HandleFunc("/soc/update/{email}", controller.UpdateSociety).Methods("POST")
 	router.HandleFunc("/soc/get/events", controller.GetSocEvents).Methods("GET")
+	router.HandleFunc("/soc/dashboard/{email}", controller.GetSocDashboard).Methods("GET")
 }
