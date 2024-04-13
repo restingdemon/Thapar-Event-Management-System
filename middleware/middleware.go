@@ -31,6 +31,7 @@ var RoleMethods = map[string][]string{
 	"/event/delete/":              {utils.AdminRole, utils.SuperAdminRole},
 	"/event/upload/":              {utils.AdminRole},
 	"/event/photo/delete":         {utils.AdminRole},
+	"/event/poster/upload":        {utils.AdminRole},
 	"/soc/dashboard":              {utils.AdminRole, utils.SuperAdminRole},
 }
 

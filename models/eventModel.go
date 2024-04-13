@@ -29,4 +29,5 @@ type Event struct {
 	Eligibility    string                 `json:"eligibility,omitempty" bson:"eligibility,omitempty"`
 	PhotoGallery   []string               `json:"photo_gallery,omitempty" bson:"photo_gallery,omitempty"`
 	Venue          string                 `json:"venue,omitempty" bson:"venue,omitempty"`
+	Image          string                 `json:"image" bson:"image"`
 }
