@@ -88,7 +88,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		society.Image = existingUser.Image
-		err1:=helpers.Helper_UpdateSoc(society)
+		err1 := helpers.Helper_UpdateSoc(society)
 		if err1 != nil {
 			http.Error(w, fmt.Sprintf("Failed to update soc image: %s", err), http.StatusInternalServerError)
 			return
@@ -102,6 +102,8 @@ func Create(w http.ResponseWriter, r *http.Request) {
 				"year_of_formation": society.YearOfFormation,
 				"role":              society.Role,
 				"about":             society.About,
+				"members":           society.Members,
+				"faculty":           society.Faculty,
 				"image":             existingUser.Image,
 			},
 			"token":         token,

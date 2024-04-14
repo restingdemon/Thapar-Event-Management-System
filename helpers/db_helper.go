@@ -156,6 +156,8 @@ func Helper_UpdateSoc(soc *models.Society) error {
 			Role:            soc.Role,
 			About:           soc.About,
 			Image:           soc.Image,
+			Members:         soc.Members,
+			Faculty:         soc.Faculty,
 		},
 	}
 
@@ -406,21 +408,29 @@ func Helper_GetAllRegistrations(userType string, eventID, Soc_ID primitive.Objec
 	return registrations, nil
 }
 
-func Helper_GetSocDashboard(email string) (int64, int64, error) {
+func Helper_GetSocDashboard(email string) (int64, int64, int64, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("event")
 	filter1 := bson.M{"email": email}
-	count1, err1 := collection.CountDocuments(context.Background(), filter1)
+	totalEvents, err1 := collection.CountDocuments(context.Background(), filter1)
 	if err1 != nil {
-		return 0, 0, err1
+		return 0, 0, 0, err1
 	}
 
-	filter2 := bson.M{"end_date": bson.M{"$gt": time.Now().Unix()},"email": email}
-	count2, err2 := collection.CountDocuments(context.Background(), filter2)
+	filter2 := bson.M{"end_date": bson.M{"$gt": time.Now().Unix()}, "email": email}
+	upcomingEvents, err2 := collection.CountDocuments(context.Background(), filter2)
 	if err2 != nil {
-		return 0, 0, err2
+		return 0, 0, 0, err2
 	}
 
-	return count1, count2, nil
+	collection = models.DB.Database("ThaparEventsDb").Collection("society")
+	filter3 := bson.M{"email": email}
+	society := &models.Society{}
+
+	err3 := collection.FindOne(context.Background(), filter3).Decode(society)
+	if err3 != nil {
+		return 0, 0, 0, err3
+	}
+	return totalEvents, upcomingEvents, int64(len(society.Members)), nil
 }
 
 func Helper_GetEventDashboard(userType string, eventID primitive.ObjectID, Soc_ID primitive.ObjectID) (int64, error) {

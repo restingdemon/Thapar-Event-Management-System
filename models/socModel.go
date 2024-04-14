@@ -14,4 +14,6 @@ type Society struct {
 	Role            string             `json:"role" bson:"role"`
 	About           string             `json:"about" bson:"about"`
 	Image           string             `json:"image" bson:"image"`
+	Members         []Members          `json:"members" bson:"members"`
+	Faculty         []Faculty          `json:"faculty" bson:"faculty"`
 }

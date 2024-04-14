@@ -3,7 +3,6 @@ module github.com/restingdemon/thaparEvents
 go 1.21.5
 
 require (
-	github.com/cloudinary/cloudinary-go v1.7.0
 	github.com/cloudinary/cloudinary-go/v2 v2.7.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gorilla/mux v1.8.1

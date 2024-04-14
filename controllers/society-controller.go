@@ -177,11 +177,13 @@ func UpdateSociety(w http.ResponseWriter, r *http.Request) {
 			Soc_ID:          existingSoc.Soc_ID,
 			User_ID:         existingSoc.User_ID,
 			Email:           existingSoc.Email,
-			Name:            updatedSociety.Name,
 			Role:            existingSoc.Role,
+			Image:           existingSoc.Image,
+			Name:            updatedSociety.Name,
 			YearOfFormation: updatedSociety.YearOfFormation,
 			About:           updatedSociety.About,
-			Image:           existingSoc.Image,
+			Members:         updatedSociety.Members,
+			Faculty:         updatedSociety.Faculty,
 		}
 		err = helpers.Helper_UpdateSoc(updatedSociety)
 		if err != nil {
@@ -250,7 +252,7 @@ func GetSocDashboard(w http.ResponseWriter, r *http.Request) {
 		TeamMembers    int64 `json:"teamMembers"`
 	}
 
-	totalEvents, upcomingEvents, ok := helpers.Helper_GetSocDashboard(email)
+	totalEvents, upcomingEvents, members, ok := helpers.Helper_GetSocDashboard(email)
 	if ok != nil {
 		http.Error(w, fmt.Sprintf("Failed to get dashboard"), http.StatusInternalServerError)
 		return
@@ -258,7 +260,7 @@ func GetSocDashboard(w http.ResponseWriter, r *http.Request) {
 	resp := Response{
 		TotalEvents:    totalEvents,
 		UpcomingEvents: upcomingEvents,
-		TeamMembers:    0,
+		TeamMembers:    members,
 	}
 
 	output, err1 := json.Marshal(resp)
