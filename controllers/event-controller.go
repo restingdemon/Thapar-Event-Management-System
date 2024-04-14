@@ -41,7 +41,7 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 	event.Soc_Email = soc_details.Email
 	event.Soc_Name = soc_details.Name
 	event.CreatedAt = time.Now().Unix()
-	event.Visibility = true
+	event.Visibility = false
 
 	result, err := helpers.Helper_CreateEvent(event)
 	if err != nil {
@@ -122,10 +122,9 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		User_ID:        existingEvent.User_ID,
 		Soc_Email:      existingEvent.Soc_Email,
 		Soc_Name:       existingEvent.Soc_Name,
-		Visibility:     existingEvent.Visibility,
 		PhotoGallery:   existingEvent.PhotoGallery,
 		Image:          existingEvent.Image,
-		CreatedAt:      time.Now().Unix(),
+		CreatedAt:      existingEvent.CreatedAt,
 		Title:          updatedEvent.Title,
 		Description:    updatedEvent.Description,
 		StartDate:      updatedEvent.StartDate,
@@ -142,6 +141,7 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		Prizes:         updatedEvent.Prizes,
 		Eligibility:    updatedEvent.Eligibility,
 		Venue:          updatedEvent.Venue,
+		Visibility:     updatedEvent.Visibility,
 	}
 	err = helpers.Helper_UpdateEvent(updatedEvent)
 	if err != nil {
@@ -540,4 +540,54 @@ func UploadPoster(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte("Photos uploaded successfully"))
+}
+
+func GetEventDashboard(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	eventID, ok := vars["eventId"]
+	if !ok {
+		http.Error(w, "Event ID not provided in the request", http.StatusBadRequest)
+		return
+	}
+	userType, ok := r.Context().Value("userType").(string)
+	if !ok {
+		http.Error(w, "User type not available in the request context", http.StatusInternalServerError)
+		return
+	}
+
+	var socID primitive.ObjectID
+	if userType == utils.AdminRole {
+		// Fetch society ID only for admin role
+		var ok bool
+		socID, ok = r.Context().Value("societyID").(primitive.ObjectID)
+		if !ok {
+			http.Error(w, "Society ID not available in the request context for admin", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	objectEventID, err := primitive.ObjectIDFromHex(eventID)
+	if err != nil {
+		http.Error(w, "Invalid Event ID provided", http.StatusBadRequest)
+		return
+	}
+	type Response struct {
+		TotalRegistrations int64 `json:"totalregistrations"`
+	}
+	registrations, err := helpers.Helper_GetEventDashboard(userType, objectEventID, socID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to get registrations: %s", err), http.StatusInternalServerError)
+		return
+	}
+	resp := Response{
+		TotalRegistrations: registrations,
+	}
+	response, err := json.Marshal(resp)
+	if err != nil {
+		http.Error(w, "Failed to marshal registration", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
 }

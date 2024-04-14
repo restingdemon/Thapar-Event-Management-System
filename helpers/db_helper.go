@@ -408,17 +408,35 @@ func Helper_GetAllRegistrations(userType string, eventID, Soc_ID primitive.Objec
 
 func Helper_GetSocDashboard(email string) (int64, int64, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("event")
-	filter1 := bson.M{"email": email, "visibility": true}
+	filter1 := bson.M{"email": email}
 	count1, err1 := collection.CountDocuments(context.Background(), filter1)
 	if err1 != nil {
 		return 0, 0, err1
 	}
 
-	filter2 := bson.M{"start_date": bson.M{"$gt": time.Now().Unix()}, "visibility": true}
+	filter2 := bson.M{"end_date": bson.M{"$gt": time.Now().Unix()}}
 	count2, err2 := collection.CountDocuments(context.Background(), filter2)
 	if err2 != nil {
 		return 0, 0, err2
 	}
 
 	return count1, count2, nil
+}
+
+func Helper_GetEventDashboard(userType string, eventID primitive.ObjectID, Soc_ID primitive.ObjectID) (int64, error) {
+	collection := models.DB.Database("ThaparEventsDb").Collection("registrations")
+
+	filter := bson.M{"_eid": eventID}
+
+	// If the user is an admin filtering by society ID
+	if userType == utils.AdminRole {
+		filter["_sid"] = Soc_ID
+	}
+
+	count1, err1 := collection.CountDocuments(context.Background(), filter)
+	if err1 != nil {
+		return 0, err1
+	}
+
+	return count1, nil
 }
