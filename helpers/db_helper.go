@@ -414,8 +414,8 @@ func Helper_GetSocDashboard(email string) (int64, int64, error) {
 		return 0, 0, err1
 	}
 
-	filter2 := bson.M{"end_date": bson.M{"$gt": time.Now().Unix()}}
-	count2, err2 := collection.CountDocuments(context.Background(), filter2)
+	filter1 = bson.M{"end_date": bson.M{"$gt": time.Now().Unix()}}
+	count2, err2 := collection.CountDocuments(context.Background(), filter1)
 	if err2 != nil {
 		return 0, 0, err2
 	}
