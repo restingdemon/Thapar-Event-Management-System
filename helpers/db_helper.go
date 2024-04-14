@@ -170,7 +170,7 @@ func Helper_UpdateSoc(soc *models.Society) error {
 
 func Helper_GetSocEvents(soc_email string) ([]models.Event, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("event")
-	filter := bson.M{"visibility": true, "email": soc_email}
+	filter := bson.M{"email": soc_email}
 	cursor, err := collection.Find(context.TODO(), filter)
 	if err != nil {
 		return nil, err
