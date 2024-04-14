@@ -204,7 +204,9 @@ func UpdateSociety(w http.ResponseWriter, r *http.Request) {
 func GetSocEvents(w http.ResponseWriter, r *http.Request) {
 	queryParams := r.URL.Query()
 	soc_email := queryParams.Get("soc_email")
-
+	if soc_email == "" {
+		http.Error(w, fmt.Sprintln("society not provided"), http.StatusNotFound)
+	}
 	events, err := helpers.Helper_GetSocEvents(soc_email)
 
 	if err != nil {
