@@ -15,7 +15,7 @@ type Registration struct {
 	RollNo  string `json:"rollno" bson:"rollno"`
 	PhoneNo string `json:"phoneno" bson:"phoneno"`
 
-	Team       bool     `json:"team" bson:"team"`
+	Team       string   `json:"team" bson:"team"`
 	TeamName   string   `json:"team_name,omitempty" bson:"team_name,omitempty"`
 	TeamEmails []string `json:"team_emails,omitempty" bson:"team_emails,omitempty"`
 

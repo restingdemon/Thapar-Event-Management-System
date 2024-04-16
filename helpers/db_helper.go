@@ -261,9 +261,9 @@ func Helper_UpdateEvent(event *models.Event) error {
 
 func Helper_GetAllEvents(event_type string) ([]models.Event, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("event")
-	filter := bson.M{"visibility": true}
+	filter := bson.M{"visibility": "true"}
 	if event_type != "" {
-		filter = bson.M{"visibility": true, "event_type": event_type}
+		filter = bson.M{"visibility": "true", "event_type": event_type}
 	}
 	cursor, err := collection.Find(context.TODO(), filter)
 	if err != nil {

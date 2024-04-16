@@ -63,7 +63,7 @@ func CreateRegistration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if regisDetails.Team == true {
+	if regisDetails.Team == "true" {
 		if regisDetails.TeamName == "" || len(regisDetails.TeamEmails) == 0 {
 			http.Error(w, fmt.Sprintf("Team Name or Team Members are empty"), http.StatusBadRequest)
 			return
@@ -152,7 +152,7 @@ func CheckRegistration(w http.ResponseWriter, r *http.Request) {
 
 	response := &Response{}
 
-	if existingEvent.Team {
+	if existingEvent.Team == "true" {
 		isRegistered, err := helpers.Helper_IsTeamMemberRegisteredForEvent(existingEvent.Event_ID, email)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to check team member registration: %v", err), http.StatusInternalServerError)
@@ -237,7 +237,7 @@ func sendRegistrationConfirmationEmail(regisDetails *models.Registration, eventN
 	d := gomail.NewDialer("smtp.gmail.com", 587, "thapar.events.ajak@gmail.com", "Ajak@123")
 
 	var recipientEmails []string
-	if regisDetails.Team {
+	if regisDetails.Team == "true" {
 		recipientEmails = regisDetails.TeamEmails
 	} else {
 		recipientEmails = []string{regisDetails.Email}

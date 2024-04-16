@@ -15,8 +15,8 @@ type Event struct {
 	CreatedAt      int64                  `json:"createdAt" bson:"createdAt"`
 	StartDate      int64                  `json:"start_date,omitempty" bson:"start_date,omitempty"`
 	EndDate        int64                  `json:"end_date,omitempty" bson:"end_date,omitempty"`
-	Visibility     bool                   `json:"visibility" bson:"visibility"`
-	Team           bool                   `json:"team" bson:"team"`
+	Visibility     string                 `json:"visibility" bson:"visibility"`
+	Team           string                 `json:"team" bson:"team"`
 	MaxTeamMembers int                    `json:"max_team_members,omitempty" bson:"max_team_members,omitempty"`
 	MinTeamMembers int                    `json:"min_team_members,omitempty" bson:"min_team_members,omitempty"`
 	Additional     map[string]interface{} `json:"additional,omitempty" bson:"additional,omitempty"`

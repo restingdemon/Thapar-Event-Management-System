@@ -41,8 +41,8 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 	event.Soc_Email = soc_details.Email
 	event.Soc_Name = soc_details.Name
 	event.CreatedAt = time.Now().Unix()
-	event.Visibility = false
-
+	event.Visibility = "false"
+	event.Team = "false"
 	result, err := helpers.Helper_CreateEvent(event)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to create event: %v", err), http.StatusInternalServerError)
@@ -115,41 +115,65 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-
-	updatedEvent = &models.Event{
-		Soc_ID:         existingEvent.Soc_ID,
-		Event_ID:       existingEvent.Event_ID,
-		User_ID:        existingEvent.User_ID,
-		Soc_Email:      existingEvent.Soc_Email,
-		Soc_Name:       existingEvent.Soc_Name,
-		PhotoGallery:   existingEvent.PhotoGallery,
-		Image:          existingEvent.Image,
-		CreatedAt:      existingEvent.CreatedAt,
-		Title:          updatedEvent.Title,
-		Description:    updatedEvent.Description,
-		StartDate:      updatedEvent.StartDate,
-		EndDate:        updatedEvent.EndDate,
-		Additional:     updatedEvent.Additional,
-		Parameters:     updatedEvent.Parameters,
-		Team:           updatedEvent.Team,
-		MaxTeamMembers: updatedEvent.MaxTeamMembers,
-		MinTeamMembers: updatedEvent.MinTeamMembers,
-		EventType:      updatedEvent.EventType,
-		EventMode:      updatedEvent.EventMode,
-		Hashtags:       updatedEvent.Hashtags,
-		SocialMedia:    updatedEvent.SocialMedia,
-		Prizes:         updatedEvent.Prizes,
-		Eligibility:    updatedEvent.Eligibility,
-		Venue:          updatedEvent.Venue,
-		Visibility:     updatedEvent.Visibility,
+	if updatedEvent.Title != "" {
+		existingEvent.Title = updatedEvent.Title
 	}
-	err = helpers.Helper_UpdateEvent(updatedEvent)
+	if updatedEvent.Description != "" {
+		existingEvent.Description = updatedEvent.Description
+	}
+	if updatedEvent.StartDate != 0 {
+		existingEvent.StartDate = updatedEvent.StartDate
+	}
+	if updatedEvent.EndDate != 0 {
+		existingEvent.EndDate = updatedEvent.EndDate
+	}
+	if updatedEvent.Additional != nil {
+		existingEvent.Additional = updatedEvent.Additional
+	}
+	if updatedEvent.Parameters != nil {
+		existingEvent.Parameters = updatedEvent.Parameters
+	}
+	if updatedEvent.Team != "" {
+		existingEvent.Team = updatedEvent.Team
+	}
+	if updatedEvent.MaxTeamMembers != 0 {
+		existingEvent.MaxTeamMembers = updatedEvent.MinTeamMembers
+	}
+	if updatedEvent.MinTeamMembers != 0 {
+		existingEvent.MinTeamMembers = updatedEvent.MinTeamMembers
+	}
+	if updatedEvent.EventType != "" {
+		existingEvent.EventType = updatedEvent.EventType
+	}
+	if updatedEvent.EventMode != "" {
+		existingEvent.EventMode = updatedEvent.EventMode
+	}
+	if updatedEvent.Hashtags != nil {
+		existingEvent.Hashtags = updatedEvent.Hashtags
+	}
+	if updatedEvent.SocialMedia != nil {
+		existingEvent.SocialMedia = updatedEvent.SocialMedia
+	}
+	if updatedEvent.Prizes != nil {
+		existingEvent.Prizes = updatedEvent.Prizes
+	}
+	if updatedEvent.Eligibility != "" {
+		existingEvent.Eligibility = updatedEvent.Eligibility
+	}
+	if updatedEvent.Venue != "" {
+		existingEvent.Venue = updatedEvent.Venue
+	}
+	if updatedEvent.Visibility != "" {
+		existingEvent.Visibility = updatedEvent.Visibility
+	}
+
+	err = helpers.Helper_UpdateEvent(existingEvent)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to update event: %s", err), http.StatusInternalServerError)
 		return
 	}
 
-	response, err := json.Marshal(updatedEvent)
+	response, err := json.Marshal(existingEvent)
 	if err != nil {
 		http.Error(w, "Failed to marshal event details", http.StatusInternalServerError)
 		return
