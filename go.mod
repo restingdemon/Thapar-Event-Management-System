@@ -6,6 +6,7 @@ require (
 	github.com/cloudinary/cloudinary-go/v2 v2.7.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gorilla/mux v1.8.1
+	github.com/joho/godotenv v1.5.1
 	github.com/rs/cors v1.10.1
 	go.mongodb.org/mongo-driver v1.13.1
 	google.golang.org/api v0.159.0
