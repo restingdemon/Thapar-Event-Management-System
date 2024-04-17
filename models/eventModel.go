@@ -35,7 +35,6 @@ type Event struct {
 }
 
 type Rounds struct {
-	RoundNo     int64  `json:"roundno" bson:"roundno"`
 	Name        string `json:"name" bson:"name"`
 	Description string `json:"description" bson:"description"`
 }
