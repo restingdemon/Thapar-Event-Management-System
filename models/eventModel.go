@@ -20,7 +20,7 @@ type Event struct {
 	MaxTeamMembers int                    `json:"max_team_members,omitempty" bson:"max_team_members,omitempty"`
 	MinTeamMembers int                    `json:"min_team_members,omitempty" bson:"min_team_members,omitempty"`
 	Additional     map[string]interface{} `json:"additional,omitempty" bson:"additional,omitempty"`
-	Parameters     map[string]interface{} `json:"parameters,omitempty" bson:"parameters,omitempty"`
+	Parameters     []Parameters           `json:"parameters,omitempty" bson:"parameters,omitempty"`
 	EventType      string                 `json:"event_type,omitempty" bson:"event_type,omitempty"`
 	EventMode      string                 `json:"event_mode,omitempty" bson:"event_mode,omitempty"`
 	Hashtags       []string               `json:"hashtags,omitempty" bson:"hashtags,omitempty"`
@@ -44,6 +44,10 @@ type Deadlines struct {
 	Description string `json:"description" bson:"description"`
 }
 type Prizes struct {
+	Name        string `json:"name" bson:"name"`
+	Description string `json:"description" bson:"description"`
+}
+type Parameters struct {
 	Name        string `json:"name" bson:"name"`
 	Description string `json:"description" bson:"description"`
 }

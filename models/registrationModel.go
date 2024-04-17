@@ -19,5 +19,5 @@ type Registration struct {
 	TeamName   string   `json:"team_name,omitempty" bson:"team_name,omitempty"`
 	TeamEmails []string `json:"team_emails,omitempty" bson:"team_emails,omitempty"`
 
-	Parameters map[string]interface{} `json:"parameters,omitempty" bson:"parameters,omitempty"`
+	Parameters []Parameters `json:"parameters,omitempty" bson:"parameters,omitempty"`
 }

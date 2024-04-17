@@ -44,16 +44,37 @@ func CreateRegistration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for key := range existingEvent.Parameters {
-		if _, ok := regisDetails.Parameters[key]; !ok {
-			http.Error(w, fmt.Sprintf("missing parameter '%s' in registration", key), http.StatusBadRequest)
+	// for name ,_ := range existingEvent.Parameters {
+	// 	if _, ok := regisDetails.Parameters[key]; !ok {
+	// 		http.Error(w, fmt.Sprintf("missing parameter '%s' in registration", key), http.StatusBadRequest)
+	// 		return
+	// 	}
+	// }
+
+	for _, param := range regisDetails.Parameters {
+		found := false
+		for _, parameter := range existingEvent.Parameters {
+			if parameter.Name == param.Name {
+				found = true
+				break
+			}
+		}
+		if !found {
+			http.Error(w, fmt.Sprintf("Invalid parameter '%s' provided in registration", param.Name), http.StatusBadRequest)
 			return
 		}
 	}
 
-	for key := range regisDetails.Parameters {
-		if _, ok := existingEvent.Parameters[key]; !ok {
-			http.Error(w, fmt.Sprintf("missing parameter '%s' in registration", key), http.StatusBadRequest)
+	for _, param := range existingEvent.Parameters {
+		found := false
+		for _, parameter := range regisDetails.Parameters {
+			if parameter.Name == param.Name {
+				found = true
+				break
+			}
+		}
+		if !found {
+			http.Error(w, fmt.Sprintf(" parameter '%s' not provided in registration", param.Name), http.StatusBadRequest)
 			return
 		}
 	}
