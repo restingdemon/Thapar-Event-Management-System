@@ -25,7 +25,7 @@ type Event struct {
 	EventMode      string                 `json:"event_mode,omitempty" bson:"event_mode,omitempty"`
 	Hashtags       []string               `json:"hashtags,omitempty" bson:"hashtags,omitempty"`
 	SocialMedia    map[string]interface{} `json:"social_media,omitempty" bson:"social_media,omitempty"`
-	Prizes         map[string]interface{} `json:"prizes,omitempty" bson:"prizes,omitempty"`
+	Prizes         []Prizes               `json:"prizes,omitempty" bson:"prizes,omitempty"`
 	Eligibility    string                 `json:"eligibility,omitempty" bson:"eligibility,omitempty"`
 	PhotoGallery   []string               `json:"photo_gallery,omitempty" bson:"photo_gallery,omitempty"`
 	Venue          string                 `json:"venue,omitempty" bson:"venue,omitempty"`
@@ -41,5 +41,9 @@ type Rounds struct {
 type Deadlines struct {
 	Title       string `json:"title" bson:"title"`
 	Date        int64  `json:"date" bson:"date"`
+	Description string `json:"description" bson:"description"`
+}
+type Prizes struct {
+	Name        string `json:"name" bson:"name"`
 	Description string `json:"description" bson:"description"`
 }
