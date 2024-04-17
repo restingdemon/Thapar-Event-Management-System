@@ -247,6 +247,8 @@ func Helper_UpdateEvent(event *models.Event) error {
 			PhotoGallery:   event.PhotoGallery,
 			Venue:          event.Venue,
 			Image:          event.Image,
+			Rounds:         event.Rounds,
+			Deadlines:      event.Deadlines,
 		},
 	}
 

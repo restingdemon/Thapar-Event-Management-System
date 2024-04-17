@@ -166,7 +166,12 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	if updatedEvent.Visibility != "" {
 		existingEvent.Visibility = updatedEvent.Visibility
 	}
-
+	if updatedEvent.Rounds != nil {
+		existingEvent.Rounds = updatedEvent.Rounds
+	}
+	if updatedEvent.Deadlines != nil {
+		existingEvent.Deadlines = updatedEvent.Deadlines
+	}
 	err = helpers.Helper_UpdateEvent(existingEvent)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to update event: %s", err), http.StatusInternalServerError)

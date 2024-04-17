@@ -30,4 +30,17 @@ type Event struct {
 	PhotoGallery   []string               `json:"photo_gallery,omitempty" bson:"photo_gallery,omitempty"`
 	Venue          string                 `json:"venue,omitempty" bson:"venue,omitempty"`
 	Image          string                 `json:"image" bson:"image"`
+	Rounds         []Rounds               `json:"rounds" bson:"rounds"`
+	Deadlines      []Deadlines            `json:"deadlines" bson:"deadlines"`
+}
+
+type Rounds struct {
+	RoundNo     int64  `json:"roundno" bson:"roundno"`
+	Name        string `json:"name" bson:"name"`
+	Description string `json:"description" bson:"description"`
+}
+type Deadlines struct {
+	Title       string `json:"title" bson:"title"`
+	Date        int64  `json:"date" bson:"date"`
+	Description string `json:"description" bson:"description"`
 }
