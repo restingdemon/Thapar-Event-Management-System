@@ -191,6 +191,10 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAllEvents(w http.ResponseWriter, r *http.Request) {
+	type res struct {
+		Event         models.Event `json:"event" bson:"event"`
+		Registartions int64        `json:"registrations" bson:"registrations"`
+	}
 	queryParams := r.URL.Query()
 	eventType := queryParams.Get("event_type")
 	event_id := queryParams.Get("eventId")
@@ -205,8 +209,15 @@ func GetAllEvents(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
-
-		response, err := json.Marshal(event)
+		registrations, err := helpers.Helper_GetEventDashboard(utils.AdminRole, event.Event_ID, event.Soc_ID)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to get registrations: %s", err), http.StatusInternalServerError)
+			return
+		}
+		var response res
+		response.Event = *event
+		response.Registartions = registrations
+		responses, err := json.Marshal(response)
 		if err != nil {
 			http.Error(w, "Failed to marshal event details", http.StatusInternalServerError)
 			return
@@ -214,7 +225,7 @@ func GetAllEvents(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(response)
+		w.Write(responses)
 		return
 	}
 	events, err := helpers.Helper_GetAllEvents(eventType)
