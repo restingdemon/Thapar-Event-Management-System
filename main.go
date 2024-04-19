@@ -21,6 +21,7 @@ func main() {
 	routes.RegisterSocRoutes(r)
 	routes.RegisterEventRoutes(r)
 	routes.RegisterRegistrationRoutes(r)
+	routes.RegisterFeedbackRoutes(r)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},

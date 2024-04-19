@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -18,7 +19,7 @@ type SignedDetails struct {
 	jwt.StandardClaims
 }
 
-var SECRET_KEY = "ajak"
+var SECRET_KEY = os.Getenv("Token_Secret")
 
 func GenerateAllTokens(email string, name string, userType string, uid string) (signedToken string, signedRefreshToken string, err error) {
 	claims := &SignedDetails{

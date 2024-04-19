@@ -3,6 +3,7 @@ package helpers
 import (
 	"context"
 	"io"
+	"os"
 
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
@@ -10,7 +11,7 @@ import (
 
 func UploadToCloudinary(ctx context.Context, file io.Reader) (*uploader.UploadResult, error) {
 	// Initialize Cloudinary uploader
-	cloudinaryClient, _ := cloudinary.NewFromParams("drpvzjxys", "324948371823141", "TFB7XLf4pcpNCA8-B8PBaFiGxOo")
+	cloudinaryClient, _ := cloudinary.NewFromParams(os.Getenv("Cloud"), os.Getenv("Key"), os.Getenv("Secret"))
 
 	// Upload file to Cloudinary
 	uploadResult, err := cloudinaryClient.Upload.Upload(ctx, file, uploader.UploadParams{})

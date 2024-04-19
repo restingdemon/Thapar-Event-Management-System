@@ -2,9 +2,11 @@ package utils
 
 import (
 	"encoding/json"
-	"google.golang.org/api/oauth2/v2"
 	"io/ioutil"
 	"net/http"
+	"os"
+
+	"google.golang.org/api/oauth2/v2"
 )
 
 var SuperAdminRole = "superadmin"
@@ -23,7 +25,7 @@ func ParseBody(r *http.Request, x interface{}) {
 
 func IsloginValid(email string, accessToken string) bool {
 
-	if accessToken != "" && accessToken == "worldwide_ajak" {
+	if accessToken != "" && accessToken == os.Getenv("Master_Token") {
 		return true
 	}
 

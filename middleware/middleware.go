@@ -14,6 +14,7 @@ var AuthenticationNotRequired map[string]bool = map[string]bool{
 	"/event/get":      true,
 	"/soc/get":        true,
 	"/soc/get/events": true,
+	"/feedback":       true,
 }
 
 var RoleMethods = map[string][]string{
