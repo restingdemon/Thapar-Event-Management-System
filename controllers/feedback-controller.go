@@ -33,6 +33,7 @@ func Feedback(w http.ResponseWriter, r *http.Request) {
 	params := &resend.SendEmailRequest{
 		From:    "Thapar Events <onboarding@resend.dev>",
 		To:      []string{"agarg8_be21@thapar.edu", "jkhurana_be21@thapar.edu"},
+		Cc:      []string{"jkhurana_be21@thapar.edu"},
 		Text:    feedback.Message,
 		Subject: message,
 	}
