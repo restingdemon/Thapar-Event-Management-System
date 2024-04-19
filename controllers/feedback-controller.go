@@ -32,7 +32,7 @@ func Feedback(w http.ResponseWriter, r *http.Request) {
 
 	params := &resend.SendEmailRequest{
 		From:    "Thapar Events <onboarding@resend.dev>",
-		To:      []string{"agarg8_be21@thapar.edu"},
+		To:      []string{"agarg8_be21@thapar.edu", "jkhurana_be21@thapar.edu"},
 		Text:    feedback.Message,
 		Subject: message,
 	}
@@ -46,5 +46,5 @@ func Feedback(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Feedback sent succesfully!"))
-	
+
 }
