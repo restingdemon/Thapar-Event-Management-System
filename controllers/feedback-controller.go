@@ -21,7 +21,7 @@ func Feedback(w http.ResponseWriter, r *http.Request) {
 
 	utils.ParseBody(r, feedback)
 
-	if feedback.Contact == "" || feedback.Email == "" || feedback.Message == "" || feedback.Name == "" {
+	if feedback.Email == "" || feedback.Message == "" || feedback.Name == "" {
 		http.Error(w, "Not a valid request ", http.StatusBadRequest)
 		return
 	}
