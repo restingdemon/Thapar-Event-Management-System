@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/restingdemon/thaparEvents/helpers"
@@ -232,7 +234,11 @@ func GetSocEvents(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
+	// Sort events by start date, with the nearest event from today shown first
+	sort.Slice(events, func(i, j int) bool {
+		today := time.Now().Unix()
+		return math.Abs(float64(events[i].StartDate-today)) < math.Abs(float64(events[j].StartDate-today))
+	})
 	response, err := json.Marshal(events)
 	if err != nil {
 		http.Error(w, fmt.Sprintln("Unable to marshal events into json"), http.StatusInternalServerError)

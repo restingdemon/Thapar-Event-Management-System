@@ -278,7 +278,7 @@ func Helper_GetAllEvents(event_type string) ([]models.Event, error) {
 	if err := cursor.All(context.TODO(), &events); err != nil {
 		return nil, fmt.Errorf("failed to decode events: %s", err)
 	}
-
+	
 	return events, nil
 }
 
