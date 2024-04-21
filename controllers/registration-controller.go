@@ -43,7 +43,10 @@ func CreateRegistration(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
+	if existingEvent.Register != "true" {
+		http.Error(w, fmt.Sprintf("Registration closed or not open yet"), http.StatusBadRequest)
+		return
+	}
 	// for name ,_ := range existingEvent.Parameters {
 	// 	if _, ok := regisDetails.Parameters[key]; !ok {
 	// 		http.Error(w, fmt.Sprintf("missing parameter '%s' in registration", key), http.StatusBadRequest)
