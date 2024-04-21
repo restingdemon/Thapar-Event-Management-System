@@ -43,6 +43,7 @@ func CreateEvent(w http.ResponseWriter, r *http.Request) {
 	event.CreatedAt = time.Now().Unix()
 	event.Visibility = "false"
 	event.Team = "false"
+	event.Register = "false"
 	result, err := helpers.Helper_CreateEvent(event)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to create event: %v", err), http.StatusInternalServerError)
@@ -171,6 +172,9 @@ func UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	}
 	if updatedEvent.Deadlines != nil {
 		existingEvent.Deadlines = updatedEvent.Deadlines
+	}
+	if updatedEvent.Register != "" {
+		existingEvent.Register = updatedEvent.Register
 	}
 	err = helpers.Helper_UpdateEvent(existingEvent)
 	if err != nil {
