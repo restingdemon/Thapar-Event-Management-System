@@ -23,7 +23,19 @@ func RegisterSociety(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("No email or role provided"), http.StatusBadRequest)
 		return
 	}
-
+	existingSoc, err1 := helpers.Helper_GetSocietyByEmail(societyDetails.Email)
+	if err1 != nil {
+		if errors.Is(err1, mongo.ErrNoDocuments) {
+		} else {
+			http.Error(w, fmt.Sprintf("error is %v", err1), http.StatusBadRequest)
+			return
+		}
+	}
+	if err1 != mongo.ErrNoDocuments && existingSoc != nil {
+		http.Error(w, fmt.Sprintf("Soc already exists"), http.StatusBadRequest)
+		return
+	}
+	societyDetails.Role = utils.AdminRole
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
