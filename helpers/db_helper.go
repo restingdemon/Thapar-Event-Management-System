@@ -278,10 +278,28 @@ func Helper_GetAllEvents(event_type string) ([]models.Event, error) {
 	if err := cursor.All(context.TODO(), &events); err != nil {
 		return nil, fmt.Errorf("failed to decode events: %s", err)
 	}
+
+	return events, nil
+}
+func Helper_GetNotVisibleEvents(event_type string) ([]models.Event, error) {
+	collection := models.DB.Database("ThaparEventsDb").Collection("event")
+	filter := bson.M{"visibility": "false"}
+	if event_type != "" {
+		filter = bson.M{"visibility": "false", "event_type": event_type}
+	}
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var events []models.Event
+	if err := cursor.All(context.TODO(), &events); err != nil {
+		return nil, fmt.Errorf("failed to decode events: %s", err)
+	}
 	
 	return events, nil
 }
-
 func Helper_DeleteEvent(Event_ID string) error {
 	collection := models.DB.Database("ThaparEventsDb").Collection("event")
 

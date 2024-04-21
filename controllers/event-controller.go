@@ -255,7 +255,65 @@ func GetAllEvents(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(response)
 }
+func GetNotVisibleEvents(w http.ResponseWriter, r *http.Request) {
+	type res struct {
+		Event         models.Event `json:"event" bson:"event"`
+		Registartions int64        `json:"registrations" bson:"registrations"`
+	}
+	queryParams := r.URL.Query()
+	eventType := queryParams.Get("event_type")
+	event_id := queryParams.Get("eventId")
 
+	if event_id != "" {
+		event, err := helpers.Helper_GetEventById(event_id)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				http.Error(w, fmt.Sprintf("Event not found: %s", err), http.StatusNotFound)
+			} else {
+				http.Error(w, fmt.Sprintf("Failed to get event: %s", err), http.StatusInternalServerError)
+			}
+			return
+		}
+		registrations, err := helpers.Helper_GetEventDashboard(utils.AdminRole, event.Event_ID, event.Soc_ID)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to get registrations: %s", err), http.StatusInternalServerError)
+			return
+		}
+		var response res
+		response.Event = *event
+		response.Registartions = registrations
+		responses, err := json.Marshal(response)
+		if err != nil {
+			http.Error(w, "Failed to marshal event details", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(responses)
+		return
+	}
+	events, err := helpers.Helper_GetNotVisibleEvents(eventType)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to get events: %v", err), http.StatusInternalServerError)
+		return
+	}
+	// Sort events by start date, with the nearest event from today shown first
+	sort.Slice(events, func(i, j int) bool {
+		today := time.Now().Unix()
+		return math.Abs(float64(events[i].StartDate-today)) < math.Abs(float64(events[j].StartDate-today))
+	})
+
+	response, err := json.Marshal(events)
+	if err != nil {
+		http.Error(w, "Failed to marshal events details", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+}
 func UpdateVisibility(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	eventId, ok := vars["eventId"]
