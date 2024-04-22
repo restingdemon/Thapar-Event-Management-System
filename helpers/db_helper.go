@@ -13,7 +13,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// **********USER*************************
+// **********USER************************
+
 func Helper_GetUserByID(userID primitive.ObjectID) (*models.User, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("users")
 
@@ -82,7 +83,8 @@ func Helper_UpdateUser(user *models.User) error {
 	return nil
 }
 
-// **********SOCIETY******************
+// **********SOCIETY*****************
+
 func Helper_CreateSociety(societydetails *models.Society) error {
 	collection := models.DB.Database("ThaparEventsDb").Collection("society")
 
