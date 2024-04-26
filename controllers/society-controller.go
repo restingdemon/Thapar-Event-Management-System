@@ -21,8 +21,8 @@ func RegisterSociety(w http.ResponseWriter, r *http.Request) {
 	var societyDetails = &models.Society{}
 	utils.ParseBody(r, societyDetails)
 
-	if societyDetails.Email == "" || societyDetails.Role == "" {
-		http.Error(w, fmt.Sprintf("No email or role provided"), http.StatusBadRequest)
+	if societyDetails.Email == "" || societyDetails.Role == "" || societyDetails.Faculty == nil || societyDetails.SocialMedia == nil || societyDetails.Name == "" {
+		http.Error(w, fmt.Sprintf("Adequate data not provided"), http.StatusBadRequest)
 		return
 	}
 	existingSoc, err1 := helpers.Helper_GetSocietyByEmail(societyDetails.Email)
@@ -75,7 +75,7 @@ func RegisterSociety(w http.ResponseWriter, r *http.Request) {
 	}
 
 	societyDetails.User_ID = user.ID
-	societyDetails.Name = user.Name
+	societyDetails.Visibility = "true"
 	err = helpers.Helper_CreateSociety(societyDetails)
 	if err != nil {
 		session.AbortTransaction(ctx)
@@ -151,7 +151,64 @@ func GetSocietyDetails(w http.ResponseWriter, r *http.Request) {
 		w.Write(response)
 	}
 }
+func GetNotVisibleSoc(w http.ResponseWriter, r *http.Request) {
+	queryParams := r.URL.Query()
+	email := queryParams.Get("email")
+	society_id := queryParams.Get("societyId")
+	if email != "" {
+		society, err := helpers.Helper_GetSocietyByEmail(email)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				http.Error(w, "Society not found", http.StatusNotFound)
+			} else {
+				http.Error(w, fmt.Sprintf("Failed to get society: %s", err), http.StatusInternalServerError)
+			}
+			return
+		}
+		response, err := json.Marshal(society)
+		if err != nil {
+			http.Error(w, "Failed to marshal society details", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(response)
+	} else if society_id != "" {
+		society, err := helpers.Helper_GetSocietyById(society_id)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				http.Error(w, "Society not found", http.StatusNotFound)
+			} else {
+				http.Error(w, fmt.Sprintf("Failed to get society: %s", err), http.StatusInternalServerError)
+			}
+			return
+		}
+		response, err := json.Marshal(society)
+		if err != nil {
+			http.Error(w, "Failed to marshal society details", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(response)
+	} else {
+		societies, err := helpers.Helper_GetNotVisibleSoc()
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to list all societies: %s", err), http.StatusInternalServerError)
+			return
+		}
 
+		response, err := json.Marshal(societies)
+		if err != nil {
+			http.Error(w, "Failed to marshal societies", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(response)
+	}
+}
 func UpdateSociety(w http.ResponseWriter, r *http.Request) {
 	var updatedSociety = &models.Society{}
 	utils.ParseBody(r, updatedSociety)
@@ -176,45 +233,61 @@ func UpdateSociety(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to retrieve email from context", http.StatusInternalServerError)
 		return
 	}
-
-	if role == utils.AdminRole || role == utils.SuperAdminRole {
-		existingSoc, err := helpers.Helper_GetSocietyByEmail(email)
-		if err != nil {
-			if errors.Is(err, mongo.ErrNoDocuments) {
-				http.Error(w, fmt.Sprintf("Soc not found"), http.StatusNotFound)
-			} else {
-				http.Error(w, fmt.Sprintf("Failed to get Soc: %s", err), http.StatusInternalServerError)
-			}
-			return
+	existingSoc, err := helpers.Helper_GetSocietyByEmail(email)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			http.Error(w, fmt.Sprintf("Soc not found"), http.StatusNotFound)
+		} else {
+			http.Error(w, fmt.Sprintf("Failed to get Soc: %s", err), http.StatusInternalServerError)
 		}
-		updatedSociety = &models.Society{
-			Soc_ID:          existingSoc.Soc_ID,
-			User_ID:         existingSoc.User_ID,
-			Email:           existingSoc.Email,
-			Role:            existingSoc.Role,
-			Image:           existingSoc.Image,
-			Name:            updatedSociety.Name,
-			YearOfFormation: updatedSociety.YearOfFormation,
-			About:           updatedSociety.About,
-			Members:         updatedSociety.Members,
-			Faculty:         updatedSociety.Faculty,
-		}
-		err = helpers.Helper_UpdateSoc(updatedSociety)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to update soc: %s", err), http.StatusInternalServerError)
-			return
-		}
-
-		response, err := json.Marshal(updatedSociety)
-		if err != nil {
-			http.Error(w, "Failed to marshal society details", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(response)
+		return
 	}
+	if role == utils.SuperAdminRole {
+		if updatedSociety.About != "" {
+			existingSoc.About = updatedSociety.About
+		}
+		if updatedSociety.Name != "" {
+			existingSoc.Name = updatedSociety.Name
+		}
+		if updatedSociety.YearOfFormation != "" {
+			existingSoc.YearOfFormation = updatedSociety.YearOfFormation
+		}
+		if updatedSociety.Members != nil {
+			existingSoc.Members = updatedSociety.Members
+		}
+		if updatedSociety.Faculty != nil {
+			existingSoc.Faculty = updatedSociety.Faculty
+		}
+		if updatedSociety.SocialMedia != nil {
+			existingSoc.SocialMedia = updatedSociety.SocialMedia
+		}
+		if updatedSociety.Visibility != "" {
+			existingSoc.Visibility = updatedSociety.Visibility
+		}
+	} else {
+		if updatedSociety.About != "" {
+			existingSoc.About = updatedSociety.About
+			existingSoc.Visibility = "false"
+		}
+		if updatedSociety.Members != nil {
+			existingSoc.Members = updatedSociety.Members
+		}
+	}
+	err = helpers.Helper_UpdateSoc(existingSoc)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to update soc: %s", err), http.StatusInternalServerError)
+		return
+	}
+
+	response, err := json.Marshal(existingSoc)
+	if err != nil {
+		http.Error(w, "Failed to marshal society details", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
 }
 
 func GetSocEvents(w http.ResponseWriter, r *http.Request) {

@@ -109,8 +109,8 @@ func Helper_GetSocietyByEmail(email string) (*models.Society, error) {
 
 func Helper_ListAllSocieties() ([]models.Society, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("society")
-
-	cursor, err := collection.Find(context.TODO(), bson.D{})
+	filter := bson.M{"visibility": "true"}
+	cursor, err := collection.Find(context.TODO(), filter)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,22 @@ func Helper_ListAllSocieties() ([]models.Society, error) {
 
 	return societies, nil
 }
+func Helper_GetNotVisibleSoc() ([]models.Society, error) {
+	collection := models.DB.Database("ThaparEventsDb").Collection("society")
+	filter := bson.M{"visibility": "false"}
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
 
+	var soc []models.Society
+	if err := cursor.All(context.TODO(), &soc); err != nil {
+		return nil, fmt.Errorf("failed to decode events: %s", err)
+	}
+
+	return soc, nil
+}
 func Helper_GetSocietyById(societyId string) (*models.Society, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("society")
 	objID, err := primitive.ObjectIDFromHex(societyId)
@@ -158,6 +173,8 @@ func Helper_UpdateSoc(soc *models.Society) error {
 			Image:           soc.Image,
 			Members:         soc.Members,
 			Faculty:         soc.Faculty,
+			SocialMedia:     soc.SocialMedia,
+			Visibility:      soc.Visibility,
 		},
 	}
 
@@ -249,7 +266,7 @@ func Helper_UpdateEvent(event *models.Event) error {
 			Image:          event.Image,
 			Rounds:         event.Rounds,
 			Deadlines:      event.Deadlines,
-			Register: event.Register,
+			Register:       event.Register,
 		},
 	}
 
@@ -297,7 +314,7 @@ func Helper_GetNotVisibleEvents(event_type string) ([]models.Event, error) {
 	if err := cursor.All(context.TODO(), &events); err != nil {
 		return nil, fmt.Errorf("failed to decode events: %s", err)
 	}
-	
+
 	return events, nil
 }
 func Helper_DeleteEvent(Event_ID string) error {
