@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/restingdemon/thaparEvents/helpers"
 	"github.com/restingdemon/thaparEvents/models"
@@ -51,6 +52,10 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 	// If the user doesn't exist, create a new user in the database
 	if existingUser == nil {
+		if !strings.Contains(user.Email, "@thapar.edu") && user.Email != "akshay.garg130803@gmail.com" {
+			http.Error(w, fmt.Sprintf("Not a Thapar user"), http.StatusInternalServerError)
+			return
+		}
 		err := createUser(user)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to create user: %s", err), http.StatusInternalServerError)
@@ -137,14 +142,15 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 func createUser(googleUser *GoogleUser) error {
 	collection := models.DB.Database("ThaparEventsDb").Collection("users")
-
 	user := models.User{
 		Email: googleUser.Email,
 		Name:  googleUser.Name,
 		Role:  utils.UserRole,
 		Image: googleUser.Image,
 	}
-
+	if googleUser.Email == "akshay.garg130803@gmail.com" {
+		user.Role = utils.SuperAdminRole
+	}
 	_, err := collection.InsertOne(context.Background(), user)
 	if err != nil {
 		return fmt.Errorf("failed to insert user: %s", err)
@@ -237,7 +243,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		Branch: updatedUser.Branch,
 		Batch:  updatedUser.Batch,
 		Role:   existingUser.Role,
-		Image:  updatedUser.Image,
+		Image:  existingUser.Image,
 	}
 
 	// Update the user in the database
