@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"mime/multipart"
 	"net/http"
 	"sort"
 	"time"
@@ -609,8 +610,18 @@ func UploadPoster(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "You can only add photos in your own society event", http.StatusForbidden)
 		return
 	}
-
-	files := r.MultipartForm.File["photos"]
+	var files []*multipart.FileHeader
+	var fileType string
+	if r.MultipartForm.File["report"] != nil {
+		files = r.MultipartForm.File["report"]
+		fileType = "report"
+	} else if r.MultipartForm.File["photos"] != nil {
+		files = r.MultipartForm.File["photos"]
+		fileType = "photos"
+	} else {
+		http.Error(w, "No files found in request", http.StatusBadRequest)
+		return
+	}
 
 	// Loop through each file and upload to Cloudinary
 	for _, fileHeader := range files {
@@ -636,7 +647,11 @@ func UploadPoster(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		event.Image = uploadResult.SecureURL
+		if fileType == "photos" {
+			event.Image = uploadResult.SecureURL
+		} else if fileType == "report" {
+			event.Report = uploadResult.SecureURL
+		}
 
 	}
 	err = helpers.Helper_UpdateEvent(event)

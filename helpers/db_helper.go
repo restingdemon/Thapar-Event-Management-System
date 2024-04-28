@@ -269,6 +269,7 @@ func Helper_UpdateEvent(event *models.Event) error {
 			Rounds:         event.Rounds,
 			Deadlines:      event.Deadlines,
 			Register:       event.Register,
+			Report:         event.Report,
 		},
 	}
 

@@ -33,6 +33,7 @@ type Event struct {
 	Rounds         []Rounds               `json:"rounds" bson:"rounds"`
 	Deadlines      []Deadlines            `json:"deadlines" bson:"deadlines"`
 	Register       string                 `json:"register" bson:"register"`
+	Report         string                 `json:"report" bson:"report"`
 }
 
 type Rounds struct {

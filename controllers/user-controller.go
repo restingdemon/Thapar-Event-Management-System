@@ -52,7 +52,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 	// If the user doesn't exist, create a new user in the database
 	if existingUser == nil {
-		if !strings.Contains(user.Email, "@thapar.edu") && user.Email != "akshay.garg130803@gmail.com" {
+		if !strings.Contains(user.Email, "@thapar.edu") && (user.Email != "akshay.garg130803@gmail.com" || user.Email != "jiteshkhurana59@gmail.com"){
 			http.Error(w, fmt.Sprintf("Not a Thapar user"), http.StatusInternalServerError)
 			return
 		}

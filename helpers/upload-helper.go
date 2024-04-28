@@ -14,7 +14,9 @@ func UploadToCloudinary(ctx context.Context, file io.Reader) (*uploader.UploadRe
 	cloudinaryClient, _ := cloudinary.NewFromParams(os.Getenv("Cloud"), os.Getenv("Key"), os.Getenv("Secret"))
 
 	// Upload file to Cloudinary
-	uploadResult, err := cloudinaryClient.Upload.Upload(ctx, file, uploader.UploadParams{})
+	uploadResult, err := cloudinaryClient.Upload.Upload(ctx, file, uploader.UploadParams{
+		ResourceType: "raw",
+	})
 	if err != nil {
 		return nil, err
 	}
