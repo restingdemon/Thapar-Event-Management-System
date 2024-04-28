@@ -491,14 +491,14 @@ func UploadPhotos(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 
 		// Upload file to Cloudinary
-		uploadResult, err := helpers.UploadToCloudinary(r.Context(), file)
+		uploadResult, err := helpers.UploadToS3(r.Context(), file, "photos")
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to upload photo: %s", err), http.StatusInternalServerError)
 			return
 		}
 
 		// Append the uploaded photo URL to the photoURLs slice
-		photoURLs = append(photoURLs, uploadResult.SecureURL)
+		photoURLs = append(photoURLs, uploadResult)
 	}
 
 	// Append uploaded photo URLs to the event's photo gallery
@@ -641,16 +641,16 @@ func UploadPoster(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 
 		// Upload file to Cloudinary
-		uploadResult, err := helpers.UploadToCloudinary(r.Context(), file)
+		uploadResult, err := helpers.UploadToS3(r.Context(), file, eventID)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to upload photo: %s", err), http.StatusInternalServerError)
 			return
 		}
 
 		if fileType == "photos" {
-			event.Image = uploadResult.SecureURL
+			event.Image = uploadResult
 		} else if fileType == "report" {
-			event.Report = uploadResult.SecureURL
+			event.Report = uploadResult
 		}
 
 	}
