@@ -52,9 +52,12 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 	// If the user doesn't exist, create a new user in the database
 	if existingUser == nil {
-		if !strings.Contains(user.Email, "@thapar.edu") && (user.Email != "akshay.garg130803@gmail.com" || user.Email != "jiteshkhurana59@gmail.com"){
+		if !strings.Contains(user.Email, "@thapar.edu") && (user.Email != "akshay.garg130803@gmail.com" && user.Email != "jiteshkhurana59@gmail.com"){
 			http.Error(w, fmt.Sprintf("Not a Thapar user"), http.StatusInternalServerError)
 			return
+		}
+		if(user.Email == "akshay.garg130803@gmail.com" || user.Email == "jiteshkhurana59@gmail.com"){
+			user.Role=utils.SuperAdminRole
 		}
 		err := createUser(user)
 		if err != nil {
@@ -67,6 +70,9 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		existingUser.Image = user.Image
+		if(existingUser.Email == "akshay.garg130803@gmail.com" || existingUser.Email == "jiteshkhurana59@gmail.com"){
+			existingUser.Role=utils.SuperAdminRole
+		}
 		err = helpers.Helper_UpdateUser(existingUser)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to update user: %s", err), http.StatusInternalServerError)

@@ -7,6 +7,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -16,7 +17,7 @@ import (
 
 func UploadToS3(ctx context.Context, file io.Reader, eventID string) (string, error) {
 	// Load default configuration
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion("us-east-1"))
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(os.Getenv("AWS_REGION")))
 	if err != nil {
 		return "", fmt.Errorf("failed to load configuration: %w", err)
 	}
@@ -42,7 +43,7 @@ func UploadToS3(ctx context.Context, file io.Reader, eventID string) (string, er
 
 	// Upload the entire file to S3
 	_, err = svc.PutObject(ctx, &s3.PutObjectInput{
-		Bucket:      aws.String("thaparevents"), // Change to your S3 bucket name
+		Bucket:      aws.String(os.Getenv("AWS_BUCKET_NAME")), // Change to your S3 bucket name
 		Key:         aws.String(objectKey),
 		Body:        bytes.NewReader(buffer.Bytes()),
 		ContentType: aws.String(contentType),
@@ -52,7 +53,7 @@ func UploadToS3(ctx context.Context, file io.Reader, eventID string) (string, er
 	}
 
 	// Return the URL of the uploaded file
-	return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", "thaparevents", objectKey), nil
+	return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", os.Getenv("AWS_BUCKET_NAME"), objectKey), nil
 }
 
 func generateUniqueKey() string {
