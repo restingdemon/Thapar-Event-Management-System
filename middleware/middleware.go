@@ -24,6 +24,7 @@ var RoleMethods = map[string][]string{
 	"/soc/register":            {utils.SuperAdminRole},
 	"/soc/update/":             {utils.AdminRole, utils.SuperAdminRole},
 	"/soc/get/notvisible":      {utils.SuperAdminRole},
+	"/soc/get/allevents":       {utils.AdminRole, utils.SuperAdminRole},
 	//"/event/create":               {utils.AdminRole, utils.SuperAdminRole},
 	"/event/update/":              {utils.AdminRole, utils.SuperAdminRole},
 	"/event/register/":            {utils.UserRole},

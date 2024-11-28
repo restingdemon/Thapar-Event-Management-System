@@ -321,7 +321,40 @@ func GetSocEvents(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 
 }
+func GetAllSocEvents(w http.ResponseWriter, r *http.Request) {
+	emailValue := r.Context().Value("email")
+	if emailValue == nil {
+		http.Error(w, "Email not found in context", http.StatusInternalServerError)
+		return
+	}
+	email, ok := emailValue.(string)
+	if !ok {
+		http.Error(w, "Failed to retrieve email from context", http.StatusInternalServerError)
+		return
+	}
+	events, err := helpers.Helper_GetALLSocEvents(email)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			http.Error(w, fmt.Sprintln("Not events found"), http.StatusNotFound)
+		} else {
+			http.Error(w, fmt.Sprintf("Failed to get events: %s", err), http.StatusInternalServerError)
+		}
+		return
+	}
+	// Sort events by start date, with the nearest event from today shown first
+	sort.Slice(events, func(i, j int) bool {
+		today := time.Now().Unix()
+		return math.Abs(float64(events[i].StartDate-today)) < math.Abs(float64(events[j].StartDate-today))
+	})
+	response, err := json.Marshal(events)
+	if err != nil {
+		http.Error(w, fmt.Sprintln("Unable to marshal events into json"), http.StatusInternalServerError)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
 
+}
 func GetSocDashboard(w http.ResponseWriter, r *http.Request) {
 	email := r.Context().Value("email").(string)
 	if email == "" {

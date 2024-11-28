@@ -191,6 +191,23 @@ func Helper_UpdateSoc(soc *models.Society) error {
 
 func Helper_GetSocEvents(soc_email string) ([]models.Event, error) {
 	collection := models.DB.Database("ThaparEventsDb").Collection("event")
+	filter := bson.M{"email": soc_email,"visibility":"true"}
+	cursor, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var events []models.Event
+	if err := cursor.All(context.TODO(), &events); err != nil {
+		return nil, fmt.Errorf("failed to decode events: %s", err)
+	}
+
+	return events, nil
+}
+
+func Helper_GetALLSocEvents(soc_email string) ([]models.Event, error) {
+	collection := models.DB.Database("ThaparEventsDb").Collection("event")
 	filter := bson.M{"email": soc_email}
 	cursor, err := collection.Find(context.TODO(), filter)
 	if err != nil {
